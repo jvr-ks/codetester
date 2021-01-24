@@ -10,7 +10,7 @@
 FileEncoding, UTF-8-RAW
 
 appName := "Codetester"
-appVersion := "0.040"
+appVersion := "0.041"
 app := appName . " " . appVersion
 iniFileName := A_ScriptDir . "codetester.ini"
 
