@@ -78,13 +78,39 @@ getLenPixel(EditTxt){
 	Gui,destroy
 	return TextLenW
 }
-;************************************ tip ************************************
-tip(msg){
-	
-	s := StrReplace(msg,"^",",")
-	ToolTip, %s%,,,3
-	SetTimer,tipClose,-8000
+;--------------------------------- tipCreate ---------------------------------
+tipCreate(){
+; ToolTip window
+
+	global Tip
+
+	active = false
+	Gui, tip:New,-Caption +AlwaysOnTop
+	Gui, tip:Add, Text, vTip w400 h15 Center
+	Gui,tip:Show, xCenter y0, NoActivate
+
 }
+;------------------------------------ tip ------------------------------------
+tip(msg){
+	global Tip
+	static TipExists := false
+
+	if (!TipExists){
+		tipCreate()
+		TipExists := true
+	}
+	
+	GuiControl,tip:,Tip,%msg%
+
+	return
+}
+;--------------------------------- tipClear ---------------------------------
+tipClear(){
+	tip("                                          ")
+
+	return
+}
+
 ;********************************** tipTop **********************************
 tipTop(msg){
 	

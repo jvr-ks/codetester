@@ -10,7 +10,7 @@ The builtin editor is very rudimentary.
   
 #### Latest changes:  
 
-
+* "Test script is running" moved to the left  
 * "codetester.txt" renamed to "_codetester.txt"
 * New button \[Get code from notepad++].  
 Notepad++ must be opened with the relevant tab.  
@@ -99,6 +99,6 @@ Copyright (c) 2020 J. v. Roos
 
 
 ##### Viruscheck at Virustotal 
-[Check here](https://www.virustotal.com/gui/url/e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192/detection/u-e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192-1611505186
+[Check here](https://www.virustotal.com/gui/url/e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192/detection/u-e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192-1611841792
 )  
 Use [CTRL] + Click to open in a new window! 

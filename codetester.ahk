@@ -10,7 +10,7 @@
 FileEncoding, UTF-8-RAW
 
 appName := "Codetester"
-appVersion := "0.041"
+appVersion := "0.042"
 app := appName . " " . appVersion
 iniFileName := A_ScriptDir . "codetester.ini"
 
@@ -295,7 +295,7 @@ FileAppend,
 #Persistent
 #SingleInstance, Force
 
-Progress, m2 b fs13 Y0 zh0 WMn700, Test script is running
+Progress, x0 m2 b fs13 Y0 zh0 WMn700, Test script is running
 Gui 99: show, hide, Slave script ; hidden message receiver window
 OnMessage(0x1001,"ReceiveMessage")
 %code%
