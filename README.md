@@ -6,22 +6,12 @@ Writes the code to the temporary file "TempTestCode.ahk" and executes it via Aut
 Code is saved as "_codetester.txt" and restored on restart.  
   
 I use it to quickly tryout parts of code.  
-The builtin editor is very rudimentary.  
+The builtin editor is very rudimentary,  
+but \[Get code from notepad++] can be used!
   
-Based on: [https://autohotkey.com/board/topic/72566-code-tester-test-your-code/](https://autohotkey.com/board/topic/72566-code-tester-test-your-code/)
+Based on: [https://autohotkey.com/board/topic/72566-code-tester-test-your-code/](https://autohotkey.com/board/topic/72566-code-tester-test-your-code/frudimentary)
   
 #### Latest changes:  
-
-* Background operation removed
-* "Test script is running" moved to the left  
-* "codetester.txt" renamed to "_codetester.txt"
-* New button \[Get code from notepad++].  
-Notepad++ must be opened with the relevant tab.  
-* Hotkey to open codetester removed (stays open in the backgound)
-* New button "Filemanager in saved\", relies on the Windows built in directory-open mechanism.  
-* "Save" code button, saves in ahk-file "codetesterSource" with date/time appended and appends to "codetesterAllSources.txt" both in the "saved" subdirecty.  
-* Keep Gui running in the background
-* Lib/Gdip_All_patched.ahk **not** included by default
 
 
 #### Start:
@@ -48,7 +38,7 @@ Hotkeys can be set to "off" by adding the word "off" to the definition.
 [Sourecode at Github](https://github.com/jvr-ks/codetester), "codetester.ahk" an [Autohotkey](https://www.autohotkey.com) script.
 
 
-Put your test-code in the box (via the clipboard).  
+Put your test-code in the box (via the clipboardor \[Get code from notepad++] button).  
 Then click the Button or the hotkey to execute your test-code.  
   
 Click on the End-Button or use the hotkey to stop execution of your test-code.  
@@ -60,7 +50,7 @@ You can put any function as an ahk-file in the Lib subdirectory,
 (it's the Autohotkey mechanismen for ahk-files with function-names),
 or us the standard #Include mechanism.    
   
-**The code is only saved if you push the \[Test Code"] button!**  
+**The code is only saved if you push the \[Test Code"] button once!**  
   
 Example:  
   
