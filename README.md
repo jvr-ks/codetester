@@ -8,8 +8,11 @@ Code is saved as "_codetester.txt" and restored on restart.
 I use it to quickly tryout parts of code.  
 The builtin editor is very rudimentary.  
   
+Based on: (https://autohotkey.com/board/topic/72566-code-tester-test-your-code/)[https://autohotkey.com/board/topic/72566-code-tester-test-your-code/]  
+  
 #### Latest changes:  
 
+* Background operation removed
 * "Test script is running" moved to the left  
 * "codetester.txt" renamed to "_codetester.txt"
 * New button \[Get code from notepad++].  
@@ -23,10 +26,6 @@ Notepad++ must be opened with the relevant tab.
 
 #### Start:
 "codetester.exe"  
-The app is persistent.
-If you want to remove it from memory, start it again and click on the "X" button.
-A click on window-minimize moves the app to the background.  
-Use the hotkey (\[ALT] + \[u] default) to bring the app to the foreground.  
 
 [Download from github](https://github.com/jvr-ks/codetester/raw/master/codetester.exe)  
 Viruscheck see below.  
@@ -87,7 +86,10 @@ Click \[Test code] button
 Result probably: "C:\windows\cmd.exe"  
 Click \[End test] button  
   
-
+##### Hotkeys
+[Overview of all default Hotkeys used by my Autohotkey "tools"](https://github.com/jvr-ks/cmdlinedev/blob/master/hotkeys.md)
+  
+  
 ##### License: MIT
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sub license, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -99,6 +101,6 @@ Copyright (c) 2020 J. v. Roos
 
 
 ##### Viruscheck at Virustotal 
-[Check here](https://www.virustotal.com/gui/url/e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192/detection/u-e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192-1611841792
+[Check here](https://www.virustotal.com/gui/url/e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192/detection/u-e231cef54e678d9b8b86ac6f1c3c4b45e842c75ae47cebf657cd495e11de2192-1615112579
 )  
 Use [CTRL] + Click to open in a new window! 

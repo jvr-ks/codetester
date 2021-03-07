@@ -8,7 +8,6 @@ Local LQ:=StrLen(Q), LI:=StrLen(I), LD:=StrLen(D), F:=0
 Return SubStr(Q:=(I)(D)StrReplace(Q,InStr(Q,(I)(D),,0-LQ+LI+LD)?(I)(D):InStr(Q,(D)(I),0,LQ
 -LI)?(D)(I):InStr(Q,(D)(I)(D),0)?(D)(I):"","",,1),1,(F:=InStr(Q,D,0,1,Max))?F-1:StrLen(Q))
 }
-
 ;--------------------------- getVersionFromGithub ---------------------------
 getVersionFromGithub(){
 	global appName
@@ -38,16 +37,14 @@ checkVersionFromGithub(){
 	global appVersion
 	global msgDefault
 	
-	msg := msgDefault
 	vers := getVersionFromGithub()
 	if (vers != "unknown"){
 		if (vers > appVersion){
 			msg := "New version available, this is: " . appVersion . " ,available on Github is: " . vers
+			showMessage(msg)
 		}
 	}
-	
-	showMessage(msg)
-				
+					
 	return
 }
 ;-------------------------------- showMessage --------------------------------
@@ -84,33 +81,58 @@ tipCreate(){
 
 	global Tip
 
-	active = false
 	Gui, tip:New,-Caption +AlwaysOnTop
-	Gui, tip:Add, Text, vTip w400 h15 Center
-	Gui,tip:Show, xCenter y0, NoActivate
-
+	Gui, tip:Font, s11, Calibri
 }
 ;------------------------------------ tip ------------------------------------
 tip(msg){
-	global Tip
-	static TipExists := false
-
-	if (!TipExists){
-		tipCreate()
-		TipExists := true
-	}
+	; allways create new
 	
-	GuiControl,tip:,Tip,%msg%
+	Gui, tip:destroy
+	Gui, tip:New,-Caption +AlwaysOnTop
+	Gui, tip:Font, s11, Calibri
+	
+	s := StrReplace(msg,"^",",")
+	Gui, tip:Add, Text, vTip h20 Center,%s%
+	Gui,tip:Show, xCenter y0 Autosize NoActivate,tip-Window
 
 	return
 }
-;--------------------------------- tipClear ---------------------------------
-tipClear(){
-	tip("                                          ")
+;--------------------------------- tipClose ---------------------------------
+tipClose(){
 
+	Gui,tip:Destroy
+	
 	return
 }
+;------------------------------- tipRefreshed -------------------------------
+tipRefreshed(msg){
+	;created only once,fixed width
 
+	tipHwnd := WinExist("tipRefreshedWindow")
+	if ( tipHwnd == 0){
+		tipRefreshedCreate()
+	}
+	s := StrReplace(msg,"^",",")
+	Guicontrol,tipRefreshed:,TipRefreshed,%s%
+	return
+}
+;---------------------------- tipRefreshedCreate ----------------------------
+tipRefreshedCreate(){
+	global TipRefreshed
+
+	Gui, tipRefreshed:New,-Caption +AlwaysOnTop
+	Gui, tipRefreshed:Font, s11, Calibri
+	Gui, tipRefreshed:Add, Text, vTipRefreshed h20 w300 Center
+	Gui,tipRefreshed:Show, xCenter y0 Autosize NoActivate,tipRefreshedWindow
+}
+;----------------------------- tipRefreshedClose -----------------------------
+tipRefreshedClose(){
+
+	Gui,tipRefreshed:Destroy
+	
+	return
+}
 ;********************************** tipTop **********************************
 tipTop(msg){
 	
@@ -119,7 +141,7 @@ tipTop(msg){
 	
 	s := StrReplace(msg,"^",",")
 	ToolTip, %s%,toolX,toolY,3
-	SetTimer,tipClose,-6000
+	SetTimer,tipTopClose,-6000
 }
 ;******************************** tipTopTime ********************************
 tipTopTime(msg, t := 2000){
@@ -129,7 +151,7 @@ tipTopTime(msg, t := 2000){
 	
 	s := StrReplace(msg,"^",",")
 	ToolTip, %s%,toolX,toolY,3
-	SetTimer,tipClose,%t%
+	SetTimer,tipTopClose,%t%
 }
 ;******************************* tipTopEternal *******************************
 tipTopEternal(msg){
@@ -141,11 +163,39 @@ tipTopEternal(msg){
 
 	ToolTip, %s%,toolX,toolY,3
 }
-;********************************* tipClose *********************************
-tipClose(){
+;-------------------------------- tipTopClose --------------------------------
+tipTopClose(){
 	ToolTip,,,,1
 	ToolTip,,,,2
 	ToolTip,,,,3
+}
+;------------------------------- tipTopTransp -------------------------------
+tipTopTransp(msg, widthPixel){
+	global TipTopTranspText
+	static tipTranspHwnd
+	
+	s := StrReplace(msg,"^",",")
+	tipTranspHwnd := WinExist("tipTopTranspWindow")
+	
+	if ( tipTranspHwnd == 0){
+		Gui, tipTopTransp:New,-Caption +AlwaysOnTop
+		Gui, tipTopTransp:Font, s10, Calibri
+		Gui, tipTopTransp:Add, Text, vTipTopTranspText Center h17 w%widthPixel%
+	}
+
+	GuiControl,tipTopTransp:,TipTopTranspText,%s%
+	Gui, tipTopTransp:Show, xCenter y0 Autosize NoActivate,tipTopTranspWindow
+	
+	tipTranspHwnd := WinExist("tipTopTranspWindow")
+	WinSet, Transparent, 150, ahk_id %tipTranspHwnd%
+
+	return
+}
+;---------------------------- tipTopTranspRemove ----------------------------
+tipTopTranspClose(){
+	global TipTopTransp
+
+	Gui, tipTopTransp:destroy
 }
 ;******************************** GuiGetSize ********************************
 GuiGetSize( ByRef W, ByRef H, GuiID=1 ) {
