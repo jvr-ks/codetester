@@ -8,7 +8,7 @@ Code is saved as "_codetester.txt" and restored on restart.
 I use it to quickly tryout parts of code.  
 The builtin editor is very rudimentary.  
   
-Based on: (https://autohotkey.com/board/topic/72566-code-tester-test-your-code/)[https://autohotkey.com/board/topic/72566-code-tester-test-your-code/]  
+Based on: [https://autohotkey.com/board/topic/72566-code-tester-test-your-code/](https://autohotkey.com/board/topic/72566-code-tester-test-your-code/)
   
 #### Latest changes:  
 
