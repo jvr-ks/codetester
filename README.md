@@ -12,7 +12,7 @@ but \[Get code from notepad++] can be used!
 Based on: [https://autohotkey.com/board/topic/72566-code-tester-test-your-code/](https://autohotkey.com/board/topic/72566-code-tester-test-your-code/frudimentary)
   
 #### Latest changes:  
-
+\[Get code from notepad++] button, gets text from notepad++ (topmost instance window).  
 
 #### Start:
 "codetester.exe"  
@@ -38,7 +38,7 @@ Hotkeys can be set to "off" by adding the word "off" to the definition.
 [Sourecode at Github](https://github.com/jvr-ks/codetester), "codetester.ahk" an [Autohotkey](https://www.autohotkey.com) script.
 
 
-Put your test-code in the box (via the clipboardor \[Get code from notepad++] button).  
+Put your test-code in the box (via the clipboardor or the \[Get code from notepad++] button).  
 Then click the Button or the hotkey to execute your test-code.  
   
 Click on the End-Button or use the hotkey to stop execution of your test-code.  
