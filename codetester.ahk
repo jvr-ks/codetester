@@ -2,8 +2,8 @@
 ; from: https://autohotkey.com/board/topic/72566-code-tester-test-your-code/
 ; modified by jvr 2020
 
-#NoEnv  ; Recommended for performance and compatibility with future AutoHotkey releases.
-#Warn  ; Enable warnings to assist with detecting common errors.
+#NoEnv
+#Warn
 #SingleInstance force
 #Persistent
 
