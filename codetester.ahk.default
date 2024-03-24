@@ -1,0 +1,1883 @@
+﻿;------------------------------ codetester.ahk ------------------------------
+; from: https://autohotkey.com/board/topic/72566-code-tester-test-your-code/
+; modified by jvr 2020
+
+#NoEnv
+; #Warn
+#SingleInstance Force
+
+#include, Lib\SCI.ahk
+
+SetWinDelay, -1
+
+SetTitleMatchMode, 2
+DetectHiddenWindows, On
+
+screenDPI := 96
+
+wrkDir := A_ScriptDir . "\"
+
+if (!FileExist("SciLexer.dll") ) {
+  msgbox,48,, Scintilla.dll or SciLexer.dll missing. Closing Codetester due to this error!
+}
+
+appName := "Codetester"
+appnameLower := "codetester"
+extension := ".exe"
+appVersion := "0.085"
+
+bit := (A_PtrSize=8 ? "64" : "32")
+
+if (!A_IsUnicode)
+  bit := "A" . bit
+
+bitName := (bit="64" ? "" : bit)
+app := appName . " " . appVersion . " " . bit . "-bit"
+
+localVersionFile := "version.txt"
+serverURL := "https://github.com/jvr-ks/"
+serverURLExtension := "/raw/main/"
+
+;-------------------------------- read param --------------------------------
+Loop % A_Args.Length()
+{
+  if(eq(A_Args[A_index],"remove")){
+    ExitApp
+  }
+}
+
+exeIgnore := 0
+debugText := ""
+debugTextAll := ""
+lastUsedFile := ""
+  
+;--- Gui parameter ---
+guiMainWidthDefault := A_ScreenWidth - Floor(A_ScreenWidth/8)
+guiMainHeightDefault := A_ScreenHeight - Floor(A_ScreenHeight/8)
+
+guiMainWidth := guiMainWidthDefault
+guiMainHeight := guiMainHeightDefault
+
+editWidth := 0
+editHeight := 0
+editWidthSCI := 0
+editHeightSCI := 0
+xStart := 5
+yStart := 45
+DebugY := 14
+buttonWidth := 112
+buttonWidthSmall := 51
+buttonHeight := 35
+deltaButton := 10
+sbHeight := 30
+textHeight := 18
+dpiScale := 1
+
+widthdebugText := 400
+widthdebugTextMargin := 50
+borderY := 25
+
+fontDefault := "Calibri"
+font := fontDefault
+fontsizeDefault := 10
+fontsize := fontsizeDefault
+
+myeditor := ""
+
+iniFile := wrkDir . "codetester.ini"
+
+hMain := 0
+
+ahkexepathDefault := "C:\Program Files\AutoHotkey\AutoHotkey.exe"
+ahkexepath := ahkexepathDefault
+
+SetTitleMatchMode, 2
+
+FileCreateDir, %wrkDir%_saved
+
+theCode := ""
+
+if (FileExist(wrkDir . "_codetester.txt") != ""){
+  f := FileOpen("_codetester.txt","r")
+  theCode := f.Read()
+  f.Close()
+}
+
+testSelectedCodeHotkeyDefault := "^u"
+testSelectedCodeHotkey := testSelectedCodeHotkeyDefault
+
+SetTitleMatchMode, 2
+DetectHiddenText, On
+
+readIni()
+server := serverURL . appnameLower . serverURLExtension
+
+OnMessage(0x44, "center_MsgBox")
+OnMessage(0x4a, "Receive_WM_COPYDATA")  ; 0x4a is WM_COPYDATA
+
+readGuiParam()
+mainWindow()
+
+return
+
+;------------------------------ guiMainGuiSize ------------------------------
+guiMainGuiSize(){
+  global widthdebugText
+  global borderY
+  global buttoAreaStart
+  global buttonHeight
+  global deltaButton
+  global sbHeight
+  global textHeight
+  global screenDPI
+  global dpiScale
+  
+  global sci
+  global sciDebug
+  global widthdebugTextMargin
+  global hMain
+  global editWidth
+  global editHeight
+  global editWidthSCI
+  global editHeightSCI
+  global buttoAreaStart
+  global xStart
+  global yStart
+
+  if (A_EventInfo != 1) {
+    ; not minimized
+
+    WinGetPosEx(hMain,xn1,yn1,wn1,hn1,Offset_X,Offset_Y)
+    
+    wn1 := wn1 - 3
+    hn1 := hn1 - 129
+    
+    dpiScale := screenDPI/A_ScreenDPI
+    
+    editWidthSCI := wn1 - widthdebugText
+    editHeightSCI := hn1 + (-borderY - 2 * buttonHeight - deltaButton - sbHeight - 2 * textHeight)/ dpiScale
+  
+    h := sci.hwnd
+    WinMove, ahk_id %h%,, xStart, yStart, editWidthSCI, editHeightSCI
+    
+    h1 := sciDebug.hwnd
+    xdebugText := editWidthSCI + 10
+    
+    w2 := widthdebugText - widthdebugTextMargin
+    WinMove, ahk_id %h1%,, xdebugText, yStart, w2, editHeightSCI
+    
+    Winset, Redraw, , A
+    
+    AutoXYWH("Button1|Button2|Button3|Button4|Button5|Button6|Button7|Button8|Button9|Button10|Button11|Button12|Button13|Button14|Button15|Button16|Button17|Button18|Button19|Button20|Button21|Button22|Button23|Button24", "y")
+  }
+  
+  return
+}
+
+;------------------------------- center_MsgBox -------------------------------
+; OnMessage(0x44, "center_MsgBox")
+
+center_MsgBox(P) {
+  global hMain
+  
+  if (P == 1027) {
+    ownPID := DllCall("GetCurrentProcessId")
+    if WinExist("ahk_pid " . ownPID) {
+      WinGet, State, MinMax
+      if !(State == -1) {
+        WinGetPosEx(hMain,eX,eY,eW,eH,Offset_X,Offset_Y)
+        DetectHiddenWindows, On
+        if WinExist("ahk_class #32770 ahk_pid " . ownPID) {
+          WinGetPos,,,mW,mH
+          WinMove,(eW-mW)/2 + eX, (eH-mH)/2 + eY
+        }
+      }
+    }
+  }
+  
+  return true
+}
+;------------------------------ guiMainGuiClose ------------------------------
+guiMainGuiClose(){
+  exit()
+
+  return
+}
+
+;--------------------------------- sbSetText ---------------------------------
+sbSetText(){
+  global testSelectedCodeHotkey
+ 
+  testSelectedCodeHotkeyText := hotkeyToText(testSelectedCodeHotkey)
+  showMessage("","Test only selected code hotkey is: " . testSelectedCodeHotkeyText)
+  
+  return
+}
+
+;--------------------------------- mainWindow ---------------------------------
+mainWindow() {
+  global font
+  global fontsize
+  global hMain
+  global gui_position
+  global testSelectedCodeHotkey
+  global theCode
+  global TempCodeEdit
+  global TempCodeEditHwnd
+  global sci
+  global sciDebug
+  global app
+  global appVersion
+  global MainStatusBarHwnd
+  global xStart
+  global yStart
+  global buttonWidth
+  global buttonWidthSmall
+  global buttonHeight
+  global deltaButton
+  global textHeight
+  global buttoAreaStart
+  global widthdebugText
+  global editWidth
+  global editHeight
+  global editWidthSCI
+  global editHeightSCI
+  global Button1
+  global Button2
+  global Button3
+  global Button4
+  global Button5
+  global Button6
+  global Button7
+  global Button8
+  global Button9
+  global Button10
+  global Button11
+  global Button12
+  global Button13
+  global Button14
+  global Button15
+  global Button16
+  global Button17
+  global Button18
+  global Button19
+  global Button20
+  global Button21
+  global Button22
+  global Button23
+  global Button24
+  global DebugY
+  global widthdebugText
+  global widthdebugTextMargin
+  global Messagetext
+  global dpiScale
+  global guiMainWidth
+  
+  Gui, Destroy
+  Gui, guiMain:New, +OwnDialogs +LastFound MaximizeBox HwndhMain +Resize, %app%
+
+  Gui, guiMain:Add, Edit, w0 h0 ; focus dummy
+  
+  Gui, guiMain:Font, s%fontsize%, %font%
+
+  widthMessagetext := guiMainWidth - 100
+  Gui, guiMain:Add, Text, x%xStart% y0 vMessagetext w%widthMessagetext%
+  
+  sci := new scintilla(hMain, xStart, yStart, editWidthSCI, editHeightSCI)
+  scintilla.encoding := "UTF-8"
+  sci.SetCodePage(65001)
+  sci.SetMarginWidthN(0x0, 0xA)
+  sci.SetMarginWidthN(0x1, 0x5)
+  sci.SetMarginTypeN(0x1, 0x2)
+  sci.SetWrapMode(TextWrap ? 0x1 : 0x0)
+  sci.SetCaretLineBack(0xFFFF80)
+  sci.SetCaretLineVisible(true)
+  sci.SetCaretLineVisibleAlways(true)
+  sci.SetLexer(0xC8)
+  sci.StyleClearAll()
+
+  debugTextX := editWidthSCI + 100
+  w2 := widthdebugText - widthdebugTextMargin
+  sciDebug := new scintilla(hMain, debugTextX, yStart, w2, editHeightSCI)
+  sciDebug.SetWrapMode(true)
+	sciDebug.SetCodePage(65001)
+
+  Gui, Add, Button, Section x%xStart% y%buttoAreaStart% w%buttonWidth% vButton1 gstartTestTempCode, Test: run`nthe code
+  
+  Gui, Add, Button, Section x+m yp+0 w%buttonWidth% vButton23 gtestSelectedCode, Test: run selected`ncode only
+
+  Gui, guiMain:Add, Button, x+m yp+0 w%buttonWidth% vButton2 gimportFromEditorTest, Import from`neditor + test
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton12 w%buttonWidthSmall%  gs1, Save 1`n
+  Gui, guiMain:Add, Button, x+m yp+0 vButton13 w%buttonWidthSmall%  gs2, Save 2`n
+  Gui, guiMain:Add, Button, x+m yp+0 vButton14 w%buttonWidthSmall%  gs3, Save 3`n
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton5 w%buttonWidth% gopenFilemanager, Filemanager`nin _saved\
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton20 w%buttonWidth% gloadFileFromSaved, Load file`nfrom _saved\
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton11 w%buttonWidthSmall%  gopenAllfilesBetter, Open`nAllfiles
+
+  Gui, guiMain:Add, Button, x+m yp+0 vButton6 w%buttonWidthSmall%  gClearTempCode, Clear`n
+  
+  ; 2nd button-row:
+  Gui, guiMain:Add, Button, x%xStart% vButton4 %buttonHeight% w%buttonWidth%  gsave, Save to file`nwith date
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton22 %buttonHeight% w%buttonWidth%  gsaveToLast, Save to last used`nfile
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton3 w%buttonWidth% gimportFromEditor, Import from`nEditor
+  
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton15 w%buttonWidthSmall%  gr1, Read 1`n
+  Gui, guiMain:Add, Button, x+m yp+0 vButton16 w%buttonWidthSmall%  gr2, Read 2`n
+  Gui, guiMain:Add, Button, x+m yp+0 vButton17 w%buttonWidthSmall%  gr3, Read 3`n
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton19 w%buttonWidth% gopenFilemanageHome, Filemanager`nin .\
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton21 w%buttonWidth% gloadFile, Load file`nfrom .\
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton10 w%buttonWidthSmall%  grunAllfilesBetter, Update`nAllfiles
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton7 w%buttonWidthSmall%  gexit, Exit`n
+  
+  ; 3rd button-row:
+  arrow := Chr(0x21A7)
+  Gui, guiMain:Add, Button, x%xStart% section vButton8 w%buttonWidthSmall%  ginsShowvari, showvari`n%arrow%
+   
+  Gui, guiMain:Add, Button, x+m yp+0 vButton18 w%buttonWidthSmall% ginsAnsiToUTF, ansiToUTF`n%arrow%
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton9 w%buttonWidthSmall% ginsSleepEscape, Sleep`nESCAPE%arrow%
+  
+  Gui, guiMain:Add, Button, x+m yp+0 vButton24 w%buttonWidthSmall% ginsEscape, ESCAPE`n%arrow%
+  
+  Menu, MainMenu, Add, Update-check,updateCheck
+
+  Menu, MainMenu, Add, UnicodeTable,selectStartValue
+  Menu, MainMenu, Add, Github webpage, openGithubPage
+  
+  Menu, MainMenu, Add,Exit,exit
+
+  Gui, guiMain:Add, StatusBar, hwndMainStatusBarHwnd -Theme +BackgroundSilver
+  Gui, guiMain:Menu, MainMenu
+
+  setTimer,showPid,-1000
+  
+  Gui, guiMain:Show, %gui_position%
+  
+  sci.SetText(unused, theCode)
+  sci.SetMarginWidthN(0, 40) ; 
+  
+  sci.StyleSetFont(32, font)
+  sci.StyleSetSize(32, fontsize)
+  sci.GrabFocus()
+
+  testSelectedCodeHotkeyText := hotkeyToText(testSelectedCodeHotkey)
+  showMessage("ESCAPE-key: Stop test!","Test selected code only hotkey is: " . testSelectedCodeHotkeyText)
+  
+  return
+}
+
+;-------------------------------- OpenAwesome --------------------------------
+OpenAwesome(){
+  
+  run,http://ahkscript.org/joedf/awesome-autohotkey/
+  
+  return
+}
+
+;---------------------------------- showPid ----------------------------------
+showPid(){
+  global app
+  
+  WinGet, thePID, PID, A
+
+  t := app . " (pid: " . thePID ")"
+  WinSetTitle,ahk_pid %thePID%,, %t%
+  
+  return
+}
+;--------------------------- importFromEditorTest ---------------------------
+importFromEditorTest(){
+  importFromEditorRun(true)
+  
+  return
+}
+
+;----------------------------- importFromEditor -----------------------------
+importFromEditor(){
+  importFromEditorRun(false)
+  
+  return
+}
+;---------------------------- importFromEditorRun ----------------------------
+importFromEditorRun(runtest){
+  global TempCodeEdit
+  global sci
+  global myeditor
+  
+  DetectHiddenWindows, On
+
+  if (myeditor == "undefined"){
+    msgbox, Define an editor first! (->file codetester.ini)
+    
+    return
+  }
+  
+  editorID := WinExist(myeditor)
+  
+  if(editorID > 0){
+    Winactivate,ahk_id %editorID%
+    sleep,1000
+    send, ^a^c{Click}
+  } else {
+    msgbox, Editor not open!
+    
+    return
+  }
+
+  codetesterID := WinExist("ahk_exe codetester.exe")
+  
+  if(codetesterID > 0){
+    Winactivate,ahk_id %codetesterID%
+    sleep,1000
+    
+    s := clipboard
+    sci.SetText(unused, s) 
+
+    if (runtest)
+      startTestTempCode()
+  } else {
+    msgbox, codetester.exe not running!
+  }
+
+  return
+}
+
+;---------------------------------- readIni ----------------------------------
+readIni(){
+  global iniFile
+  global testSelectedCodeHotkeyDefault
+  global testSelectedCodeHotkey
+  global ahkexepathDefault
+  global ahkexepath
+  global myeditor
+  global texteditorpath
+  global serverURL
+  global serverURLExtension
+  global font
+  global fontsize
+  global widthdebugText
+  global exeIgnore
+  
+  IniRead, testSelectedCodeHotkey, %iniFile%, hotkeys, testSelectedCodeHotkey, %testSelectedCodeHotkeyDefault%
+  if (InStr(testSelectedCodeHotkey, "off") > 0){
+    sIni := StrReplace(testSelectedCodeHotkey, "off" , "")
+    Hotkey, %sIni%, testSelectedCode, off
+  } else {
+    Hotkey, %testSelectedCodeHotkey%, testSelectedCode
+  }
+  
+  serverURLdefault := "https://github.com/jvr-ks/"
+  IniRead, serverURL, %iniFile%, setup, serverURL,%serverURLdefault%
+  
+  serverURLExtensiondefault := "/raw/main/"
+  IniRead, serverURLExtension, %iniFile%, setup, serverURLExtension,%serverURLExtensiondefault%
+  
+  IniRead, myeditor, %iniFile%, setup, texteditor, undefined
+  
+  IniRead, ahkexepath, %iniFile%, external, ahkexepath, %ahkexepathDefault%
+  
+  IniRead, texteditorpath, %iniFile%, setup, texteditorpath,
+  
+  IniRead, font, %iniFile%, config, font,Calibri
+  IniRead, fontsize, %iniFile%, config, fontsize,10
+  IniRead, widthdebugText, %iniFile%, config, widthdebugText,400
+  IniRead, exeIgnore, %iniFile%, config, exeIgnore,1
+  
+  return
+}
+;------------------------------- ClearTempCode -------------------------------
+ClearTempCode(){
+  global sci
+
+  sci.clearAll()
+
+  FileMove, %A_ScriptDir%\_codetester.txt,%A_ScriptDir%\_codetester.tmp.txt,1
+  
+  return
+}
+
+;--------------------------- testSelectedCode ---------------------------
+testSelectedCode(){
+
+  selectedCode := GetSelectedText()
+
+  if(StrLen(selectedCode) > 1){
+    testTempCode(selectedCode)
+  } else {
+    showHintRed("ERROR, Nothing selected!")
+  }
+  
+  return
+}
+
+;----------------------------- startTestTempCode -----------------------------
+startTestTempCode(){
+  global TempCodeEdit
+  global sci
+  global theCode
+  global debugText
+  global debugTextAll
+  global sciDebug
+  
+  debugTextAll := ""
+  makePerma()
+  
+  sci.GetText(sci.getLength()+1, theCode)
+
+  testTempCode(theCode)
+  
+  return
+}
+
+;------------------------------ GetSelectedText ------------------------------
+GetSelectedText() {
+	global sci
+  
+	selLength := sci.GetSelText()
+	VarSetCapacity(SelText, selLength, 0)
+	sci.GetSelText(0, &SelText)
+	Return StrGet(&SelText, selLength, "UTF-8")
+}
+
+;------------------------------- testTempCode -------------------------------
+testTempCode(code){
+  global app
+  global ahkexepath
+  
+  ;WinMove, %app%,, 0, 0
+	if (!InStr(code,"showvari")){
+		Gui, guiMain:hide
+	}
+
+  DetectHiddenWindows, On
+  If Winexist("TempTestCode.ahk") ; If the test code is running close it before running a new one.
+  {
+    PostMessage("Slave script", 1) ; exits/deletes slave script
+  }
+  DetectHiddenWindows, Off
+
+FileAppend, 
+(
+#SingleInstance Force
+
+;--------------------------------- showvari ---------------------------------
+showvari(variName := "", variText := ""){
+
+  TargetScriptTitle := "Codetester ahk_class AutoHotkeyGUI"
+
+  toSend := variName . ": " . variText
+  result := Send_WM_COPYDATA(toSend, TargetScriptTitle)
+  if (result == "FAIL"){
+    MsgBox SendMessage failed. Does the following WinTitle exist?: `%`TargetScriptTitle`%`
+  } else if (result == 0){
+    tooltip, showvari: Codetester responded with Error!
+  }
+
+  return
+}
+
+;--------------------------------- ansiToUTF ---------------------------------
+ansiToUTF(s){
+	vSize := StrPut(s, "CP0")
+	VarSetCapacity(vUtf8, vSize)
+	vSize := StrPut(s, &vUtf8, vSize, "CP0")
+
+	return StrGet(&vUtf8, "UTF-8") 
+}
+
+;----------------------------- Send_WM_COPYDATA -----------------------------
+Send_WM_COPYDATA(ByRef StringToSend, ByRef TargetScriptTitle) 
+; https://www.autohotkey.com/boards/viewtopic.php?t=9598
+; ByRef saves a little memory in this case.
+; This function sends the specified string to the specified window and returns the reply.
+; The reply is 1 if the target window processed the message, or 0 if it ignored it.
+{
+    VarSetCapacity(CopyDataStruct, 3*A_PtrSize, 0)  ; Set up the structure's memory area.
+    ; First set the structure's cbData member to the size of the string, including its zero terminator:
+    SizeInBytes := (StrLen(StringToSend) + 1) * (A_IsUnicode ? 2 : 1)
+    NumPut(SizeInBytes, CopyDataStruct, A_PtrSize)  ; OS requires that this be done.
+    NumPut(&StringToSend, CopyDataStruct, 2*A_PtrSize)  ; Set lpData to point to the string itself.
+    Prev_DetectHiddenWindows := A_DetectHiddenWindows
+    Prev_TitleMatchMode := A_TitleMatchMode
+    DetectHiddenWindows, On
+    SetTitleMatchMode, 2
+    SendMessage, 0x4a, 0, &CopyDataStruct,, `%`TargetScriptTitle`%`  ; 0x4a is WM_COPYDATA. Must use Send not Post.
+    DetectHiddenWindows, `%`Prev_DetectHiddenWindows`%`  ; Restore original setting for the caller.
+    SetTitleMatchMode, `%`Prev_TitleMatchMode`%`         ; Same.
+    return ErrorLevel  ; Return SendMessage's reply back to our caller.
+}
+;----------------------------------------------------------------------------
+
+Gui 99: show, hide, Slave script ; hidden message receiver window
+OnMessage(0x1001,"ReceiveMessage")
+%code%
+
+return
+
+ReceiveMessage(Message) {
+  if Message = 1
+  exitApp
+}
+), %A_ScriptDir%\TempTestCode.ahk
+
+Run, %ahkexepath% "TempTestCode.ahk" ; run script
+Sleep, 100
+
+IfWinExist, ahk_class #32770 ; IF THERE IS AN ERROR LOADING THE SCRIPT SHOW THE USER
+{
+  Sleep 20
+  WinActivate, ahk_class #32770
+  Clipsave := ClipboardAll
+  Send, ^c
+  CheckWin := Clipboard
+  Clipboard := Clipsave
+  IfInString, CheckWin, The program will exit.
+  {
+
+  if (FileExist("TempTestCode.ahk"))
+    FileDelete, %A_ScriptDir%\TempTestCode.ahk
+
+  TrayTip, ERROR, Error executing the code properly!
+  
+  return
+  }
+}
+
+toolTipCenter("Please press the ESCAPE-key, to finish the code under test!")
+
+return
+} ; end testTempCode()
+;-------------------------------- PostMessage --------------------------------
+PostMessage(Receiver, Message) {
+  oldTMM := A_TitleMatchMode
+  oldDHW := A_DetectHiddenWindows
+  SetTitleMatchMode, 3
+  DetectHiddenWindows, on
+  PostMessage, 0x1001,%Message%,,, %Receiver% ahk_class AutoHotkeyGUI
+  SetTitleMatchMode, %oldTMM%
+  DetectHiddenWindows, %oldDHW%
+  if (FileExist(A_ScriptDir . "\TempTestCode.ahk") != "")
+    FileDelete, %A_ScriptDir%\TempTestCode.ahk
+    
+  return
+}
+;----------------------------------- save -----------------------------------
+save(){
+  global iniFile
+  global TempCodeEdit
+  global sci
+  global theCode
+  global lastUsedFile
+  
+  sci.GetText(sci.getLength()+1, theCode) 
+  
+  FormatTime, filename, %A_Now% T8, 'codetesterSource'_yyyy_MM_dd_hh_mm_ss
+  
+  lastUsedFile := filename . ".ahk.txt"
+  savePath := "_saved\" . lastUsedFile
+  
+  if (FileExist(savePath))
+    FileDelete, %savePath%
+  
+  FileAppend,
+    (
+%theCode%
+
+  ), %savePath%
+  
+  mem := GetProcessMemoryUsage()
+  msg = Saved to %savePath%
+  
+  IniWrite, %lastUsedFile%, %iniFile%, save, lastUsedFile
+  showMessage(msg)
+  
+  return
+}
+
+;----------------------------------- save -----------------------------------
+saveToLast(){
+  global TempCodeEdit
+  global sci
+  global theCode
+  global lastUsedFile
+  
+  if (lastUsedFile != ""){
+    sci.GetText(sci.getLength()+1, theCode) 
+  
+    savePath := "_saved\" . lastUsedFile
+
+    if (FileExist(savePath))
+      FileDelete, %savePath%
+    
+    FileAppend,
+    (
+%theCode%
+
+  ), %savePath%
+  
+    mem := GetProcessMemoryUsage()
+    msg = Saved to %savePath% again!
+    showMessage(msg)
+  } else {
+    save()
+  }
+  
+  return
+}
+
+;------------------------------ openFilemanager ------------------------------
+openFilemanager(){
+  run,%A_ScriptDir%\_saved\,%A_ScriptDir%\
+  
+  return
+}
+
+;---------------------------- openFilemanageHome ----------------------------
+openFilemanageHome(){
+  run,%A_ScriptDir%\,%A_ScriptDir%\_saved\
+  
+  return
+}
+
+;------------------------------------ esc ------------------------------------
+esc::
+  EndTest()
+  show_it()
+  
+return
+;---------------------------------- EndTest ----------------------------------
+EndTest(){
+  global app
+  
+  sbSetText() 
+
+  PostMessage("Slave script", 1) ; exits/deletes slave script
+  Gui, guiMain:Show
+  ToolTip
+  sleep, 2000
+  
+  return
+}
+;------------------------------- toolTipCenter -------------------------------
+toolTipCenter(text){
+    
+  xPos := (A_ScreenWidth / 2)
+  yPos := 3
+  ToolTip, %text%, xPos, yPos
+  WinGetPos, X,Y,W,H, ahk_class tooltips_class32
+
+  xPos := (A_ScreenWidth / 2) - W / 2
+  ToolTip, %text%, xPos, yPos
+
+  return
+}
+
+;--------------------------------- makePerma ---------------------------------
+makePerma(){
+  global TempCodeEdit
+  global sci
+  global theCode
+
+  theCode := ""
+
+  sci.GetText(sci.getLength()+1, theCode) 
+
+  FileDelete, %A_ScriptDir%\_codetester.txt
+  
+  FileAppend,
+  (
+  %theCode%
+  ), %A_ScriptDir%\_codetester.txt
+  
+  return
+}
+
+;------------------------------ openGithubPage ------------------------------
+openGithubPage(){
+  global appnameLower
+  
+  Run https://github.com/jvr-ks/%appnameLower%
+  return
+}
+
+;------------------------------- readGuiParam -------------------------------
+readGuiParam(){
+  global iniFile
+  global fontDefault
+  global font
+  global fontsizeDefault
+  global fontsize
+  
+  global buttonHeight
+  global deltaButton
+  global buttoAreaStart
+
+  global gui_position
+  global guiMainWidthDefault
+  global guiMainHeightDefault
+  global guiMainWidth
+  global guiMainHeight
+  
+  global lastUsedFile
+  
+  IniRead, gui_position, gui.ini, window position, gui_position, Center w%guiMainWidthDefault% h%guiMainHeightDefault%
+  IniRead, guiMainWidth, gui.ini, window size, guiMainWidth, %guiMainWidthDefault%
+  IniRead, guiMainHeight, gui.ini, window size, guiMainHeight, %guiMainHeightDefault%
+
+  IniRead, font, %iniFile%, config, font, %fontDefault%
+  IniRead, fontsize, %iniFile%, config, fontsize, %fontsizeDefault%
+  
+  IniRead, lastUsedFile, %iniFile%, save, lastUsedFile
+  
+   
+  buttoAreaStart := guiMainHeight - 3 * (buttonHeight + deltaButton) - 10
+  
+  return
+}
+
+;--------------------------- guiMainGuiContextMenu ---------------------------
+guiMainGuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
+  isr := IsRightClick ? "yes" : "no"
+  msgBox, 
+  (
+  A contextmenu is not defined at the moment!
+  Parameters are
+  GuiHwnd: %GuiHwnd%
+  CtrlHwnd: %CtrlHwnd%
+  EventInfo: %EventInfo%
+  IsRightClick: %isr%
+  X: %X%
+  Y: %Y%
+  )
+
+  return
+}
+
+;-------------------------------- insShowvari --------------------------------
+insShowvari(){
+  global sci
+  global exeIgnore
+
+  cps := clipboard
+  clipboard := ""
+  
+  sci.COPY()
+  s := clipboard
+  if (s != ""){
+    if(exeIgnore){
+      t := ";@Ahk2Exe-IgnoreBegin"
+      t .= "`nshowvari(""" . s . """," . s . ")`n"
+      t .= ";@Ahk2Exe-IgnoreEnd`n"
+    } else {
+      t := "`nshowvari(""" . s . """," . s . ")`n"
+    }
+    sci.LINEDOWN()
+    sci.INSERTTEXT(-1,t)
+  } else {
+    msgbox, Mark a variable first!
+  }
+  
+  clipboard := cps
+  return
+}
+
+;------------------------------ insSleepEscape ------------------------------
+insSleepEscape(){
+  global sci
+
+  t := "`nsleep,2000`nsendInput,{ESCAPE}`n"
+  
+  sci.INSERTTEXT(-1,t)
+
+  return
+}
+
+;--------------------------------- insEscape ---------------------------------
+insEscape(){
+  global sci
+
+  t := "`nsendInput,{ESCAPE}`n"
+  
+  sci.INSERTTEXT(-1,t)
+
+  return
+}
+
+;------------------------------- insAnsiToUTF -------------------------------
+insAnsiToUTF(){
+  global sci
+  global exeIgnore
+
+  cps := clipboard
+  clipboard := ""
+  
+  sci.COPY()
+  s := clipboard
+  if (s != ""){
+    t := "ansiToUTF(" . s . ") `; "
+    sci.REMOVE(-1)
+    sci.INSERTTEXT(-1,t)
+  } else {
+    msgbox, Mark a variable first!
+  }
+  
+  clipboard := cps
+  return
+}
+
+;----------------------------- runAllfilesBetter -----------------------------
+runAllfilesBetter(){
+
+  run,allfilesbetter.exe %wrkDir%_saved
+
+
+  return
+}
+
+;-------------------------------- showMessage --------------------------------
+showMessage(t1 := "", t2 := ""){
+
+  SB_SetParts(400,300)
+  if (t1 != ""){
+    SB_SetText(" " . t1 , 1, 1)
+  }
+    
+  if (t2 != ""){
+    SB_SetText(" " . t2 , 2, 1)
+  }
+  
+  memory := "[" . GetProcessMemoryUsage() . " MB]      "
+  SB_SetText("`t`t" . memory , 3, 2)
+
+  return
+}
+;---------------------------- openAllfilesBetter ----------------------------
+openAllfilesBetter(){
+  global texteditorpath
+  global wrkDir
+
+  if (texteditorpath != ""){
+    f := StrReplace(StrReplace(wrkDir,":","_"),"\","_") . "_saved.txt"
+    run,%texteditorpath% "%f%"
+  } else {
+    msgbox, Please define the texteditorpath in Config-file->[setup]->texteditorpath first!
+  }
+  
+  return
+}
+
+;------------------------------- insertString -------------------------------
+insertString(insert_string){
+; from https://www.autohotkey.com/boards/viewtopic.php?t=60146
+
+  global TempCodeEdit
+  global global TempCodeEditHwnd
+  
+  Gui, Submit, NoHide ; Get the info entered in the GUI
+  
+  VarSetCapacity( StartPos, 4, 0 ), VarSetCapacity( EndPos, 4, 0 )
+
+  SendMessage, 0xB0, &StartPos, &EndPos,, "ahk_id " . %TempCodeEditHwnd% ; EM_GETSEL := 0xB0
+  StartPos     := NumGet( &StartPos, 0, "UInt"), EndPos := NumGet( &EndPos, 0, "UInt")
+  InsertEndPos   := EndPos+StrLen( insert_string ), StrReplace( SubStr( TempCodeEdit, 1, EndPos ), "`n",, nlCnt ) ; pre-count newlines
+
+  GuiControl, Text, TempCodeEdit, % SubStr( TempCodeEdit, 1, EndPos-nlCnt ) . insert_string . SubStr( TempCodeEdit, (EndPos+1)-nlCnt ) ; Write text back to Edit control
+  GuiControl, Focus, TempCodeEdit
+   SendMessage, 0xB1, InsertEndPos, InsertEndPos,, "ahk_id " . %TempCodeEditHwnd% ; EM_SETSEL := 0xB1
+
+  return
+}
+
+;--------------------------------- HexToDec ---------------------------------
+HexToDec(hex) {
+    VarSetCapacity(dec, 66, 0)
+    , val := DllCall("msvcrt.dll\_wcstoui64", "Str", hex, "UInt", 0, "UInt", 16, "CDECL Int64")
+    , DllCall("msvcrt.dll\_i64tow", "Int64", val, "Str", dec, "UInt", 10, "CDECL")
+    
+    return dec
+}
+;----------------------------- selectStartValue -----------------------------
+selectStartValue(){
+  global entryListBox
+  global entriesList
+  
+  start := 0
+  
+  file := wrkDir . "unicodesections.txt"
+  if (FileExist(file) != ""){
+    FileRead, data, % file
+    lines := StrSplit(data, "`n")
+    entriesList := ""
+    for index,line in lines {
+      entriesList .= line . "|" 
+    }
+  } else {
+    entriesList := "Enter own value,?|ASCII punctuation and symbols,0x000020|Smileys,0x01F600|Dingbats, 0x002500|"
+  }
+
+  Gui,unicodeTableSelect:new, +OwnDialogs +LastFound, Select startvalue
+  Gui,unicodeTableSelect:Add, ListBox, 0x100 x3 y3 r10 w300 ventryListBox gentryListBoxSelected, %entriesList%
+  Gui,unicodeTableSelect:show,autosize
+  
+  return
+}
+
+;--------------------------- entryListBoxSelected ---------------------------
+entryListBoxSelected(){
+  global entryListBox
+
+  gui,unicodeTableSelect:submit
+  valueArr := StrSplit(entryListBox,",")
+  value := valueArr[2]
+  
+  InputBox, value, UnicodeTable (next %count% characters), Please enter a start value (0x0 to 0x10FFFF), example: 0x002190., , 150, 300,,,,%value%
+  if ErrorLevel {
+    return
+  }
+  
+  v := Min(HexToDec(value),1114111)
+  v := Max(v,0)
+  
+  showUnicodeTable(v)
+  
+  return
+}
+;-------------------------------- showUnicodeTable --------------------------------
+showUnicodeTable(start){
+  global entryListBox
+  
+  static isStart := 0
+  
+  count := 512
+  
+  isStart := start
+  
+  r := showUnicodeTableFunc(isStart)
+  
+  loop
+  {
+    if (r == -3){
+      isStart -= 512
+      isStart := Max(isStart,0)
+      r := showUnicodeTableFunc(isStart)
+    }
+
+    if (r == -4){
+      isStart += 512
+      isStart := Min(isStart,1114111) ; => 0X10FFFF max
+      r := showUnicodeTableFunc(isStart)
+    }
+    
+    if ((r != -4) && (r != -3))
+      break
+  }
+  
+  
+  return
+}
+
+;--------------------------- showUnicodeTableFunc ---------------------------
+showUnicodeTableFunc(start){
+
+  allUniStrings := "`t"
+  loop, 16
+  {
+    n := A_Index - 1
+    allUniStrings .= Format("{:02.2X}",n) . "`t"
+  }
+
+  allUniStrings .= "`n"
+  
+  loop, 32
+  {
+    i := A_Index - 1
+    h := start + i * 16
+    allUniStrings .= Format("{:06.6X}",h) . "`t"
+    loop, 16
+    {
+      j := A_Index - 1
+      uniString := Chr(start + (i * 16 + j))
+      allUniStrings .= uniString . "`t"
+    }
+    allUniStrings .= "`n"
+  }
+
+  end := start + i * 16 + j
+  title := "UnicodeTable: " . Format("{:06.6X}",start) . " to 0x" . Format("{:06.6X}",end)
+  r := ScrollBox_with_up_down(allUniStrings, "w b3 f{s12 cRBlue Calibri} x50 y50 h500 w550 t70 t100 t130 t160 t190 t220 t250 t280 t310 t340 t370 t400 t430 t460 t490 t520 t550 t580",title)
+
+  return r
+}
+
+;---------------------------------- save123 ----------------------------------
+save123(number := 1){
+  global TempCodeEdit
+
+  global sci
+  global theCode
+  
+  sci.GetText(sci.getLength()+1, theCode) 
+
+  Try
+  {
+    fn := "_saved\_SAVE" . number . ".ahk.txt"
+    if (FileExist(fn))
+      FileDelete, %fn%
+      
+    FileAppend,
+(
+%theCode%
+), %fn%
+  }
+  catch e
+  {
+    eMsg  := e.Message
+    msgArr := {}
+    msgArr.push("Error: " . eMsg)
+    msgArr.push("Closing Updater due to an error!")
+    
+    errorExit(msgArr, url)
+  }
+
+  
+  msg = Saved to _saved\_SAVE%number%.ahk.txt
+  showMessage(msg)
+  return
+}
+;------------------------------------ s1 ------------------------------------
+s1(){
+  save123(1)
+
+  return
+}
+
+s2(){
+  save123(2)
+  
+  return
+}
+
+s3(){
+  save123(3)
+  
+  return
+}
+
+;---------------------------------- read123 ----------------------------------
+read123(number := 1){
+  global sci
+  global theCode
+
+  f := "_saved\_SAVE" . number . ".ahk.txt"
+  
+  if (FileExist(f) != ""){
+    msgbox,49,ATTENTION, Load the file: %f%`n`n*** Overwrites your actual code! ***
+    IfMsgBox Cancel
+        return
+      
+    f := FileOpen(f,"r")
+    theCode := f.Read()
+    f.Close()
+    
+    sci.clearAll()
+    sci.SetText(unused, theCode)
+    sci.GrabFocus()
+
+    Winset, Redraw, , A
+  } else {
+    msgbox,48,ERROR,File %f% not found!
+  }
+  
+  return
+}
+;------------------------------------ r1 ------------------------------------
+r1(){
+  read123(1)
+  return
+}
+
+r2(){
+  read123(2)
+  return
+}
+
+r3(){
+  read123(3)
+  return
+}
+
+
+;----------------------------- loadFileFromSaved -----------------------------
+loadFileFromSaved(){
+  global sci
+  global theCode
+
+  FileSelectFile, f , 3, _saved\, Load a file from _saved\
+
+  if (!ErrorLevel){
+    msgbox,49,ATTENTION, Load the file: %f%`n`n*** Overwrites your actual code! ***
+    IfMsgBox Cancel
+        return
+      
+    f := FileOpen(f,"r")
+    theCode := f.Read()
+    f.Close()
+    
+    sci.clearAll()
+    sci.SetText(unused, theCode)
+    sci.GrabFocus()
+
+    Winset, Redraw, , A
+  }
+  
+  return
+}
+
+;--------------------------------- loadFile ---------------------------------
+loadFile(){
+  global sci
+  global theCode
+  global wrkDir
+
+  FileSelectFile, f , 3,%wrkDir%, Load a file from .\
+
+  if (!ErrorLevel){
+    msgbox,49,ATTENTION, Load the file: %f%`n`n*** Overwrites your actual code! ***
+    IfMsgBox Cancel
+        return
+      
+    f := FileOpen(f,"r")
+    theCode := f.Read()
+    f.Close()
+    
+    sci.clearAll()
+    sci.SetText(unused, theCode)
+    sci.GrabFocus()
+
+    Winset, Redraw, , A
+  }
+
+  return
+}
+;--------------------------- updateCheck ---------------------------
+updateCheck(){
+  global appname
+  global appnameLower
+  global localVersionFile
+  global server
+
+  localVersion := getLocalVersion(localVersionFile)
+
+  remoteVersion := getVersionFromGithubServer(server . localVersionFile)
+
+  if (remoteVersion != "unknown!" && remoteVersion != "error!"){
+    if (remoteVersion > localVersion){
+      msg1 := "New version available: (" . localVersion . " -> " . remoteVersion . ")`, please use the Updater (updater.exe) to update " . appname . "!"
+      showHintRed(msg1)
+      
+    } else {
+      msg2 := "No new version available (" . localVersion . " -> " . remoteVersion . ")"
+      showHintGreen(msg2)
+    }
+  } else {
+    showHintRed("Update-check failed: (" . localVersion . " -> " . remoteVersion . ")")
+  }
+
+  return
+}
+
+;------------------------------ getLocalVersion ------------------------------
+getLocalVersion(file){
+  
+  versionLocal := 0.000
+  if (FileExist(file) != ""){
+    file := FileOpen(file,"r")
+    versionLocal := file.Read()
+    file.Close()
+  }
+
+  return versionLocal
+}
+
+;------------------------ getVersionFromGithubServer ------------------------
+getVersionFromGithubServer(url){
+
+  ret := "unknown!"
+
+  whr := ComObjCreate("WinHttp.WinHttpRequest.5.1")
+  Try
+  { 
+    whr.Open("GET", url)
+    whr.Send()
+    status := whr.Status
+    if (status == 200){
+     ret := whr.ResponseText
+    } else {
+      msgArr := {}
+      msgArr.push("Error while reading actual app version!")
+      msgArr.push("Connection to:")
+      msgArr.push(url)
+      msgArr.push("failed!")
+      msgArr.push("URL -> clipboard")
+      msgArr.push("Closing Updater due to an error!")
+    
+      errorExit(msgArr, url)
+    }
+  }
+  catch e
+  {
+    ret := "error!"
+  }
+
+  return ret
+}
+;---------------------------- Receive_WM_COPYDATA ----------------------------
+; from: https://www.autohotkey.com/boards/viewtopic.php?t=9598
+Receive_WM_COPYDATA(wParam, lParam) {
+  global debugTextAll
+  global debugText
+  global sciDebug
+ 
+  Gui, guiMain:show
+  StringAddress := NumGet(lParam + 2*A_PtrSize)  ; Retrieves the CopyDataStruct's lpData member.
+  ;StringLength := DllCall("lstrlen", UInt, StringAddress)
+
+  CopyOfData := StrGet(StringAddress)
+	CoordMode, Mouse, Client
+	MouseGetPos, xPosSave, yPosSave
+	xPosSave := xPosSave + 80
+  debugText := CopyOfData
+	dT := ansiToUTF(debugText)
+  ToolTip, %dT%,%xPosSave%
+  
+  debugTextAll := debugTextAll . debugText . "`n"
+
+  return true  ; Returning 1 (true) is the traditional way to acknowledge this message.
+}
+
+;---------------------------------- show_it ----------------------------------
+show_it(){
+  global sciDebug
+  global debugText
+  global debugTextAll
+  
+  sciDebug.SetText(unused, debugTextAll)
+  
+  return
+}
+;-------------------------- ScrollBox_with_up_down --------------------------
+; Fanatic Guru
+; 2016 11 18
+; Version 1.20
+; from https://www.autohotkey.com/boards/viewtopic.php?t=4837
+;
+; new by jvr: up/down buttons
+;
+; FUNCTION to Create Gui Scroll Box 
+;
+; by changes jvr:
+;    Static Gui_List := "", Gui_Index := ""
+;    Pos := 0
+;    Control := ""
+;------------------------------------------------
+;
+; Method:
+;   ScrollBox(String, Options, Label)
+;
+;    Parameters:
+;    1) {String} String to be displayed in scroll box
+;
+;    2) {Options}
+;    d    destroy Gui if exist and recreate new
+;    w    word wrap
+;    p    pause until Gui closed
+;    h    hide Gui if exist
+;    s    show Gui if exist
+;    l    left justified
+;    r    right justified
+;    c    center justified
+;    p%%    p followed by a number for ms to pause
+;    f%%    f followed by a number for font size
+;    f{%%}  f followed by font options in format of Gui font command
+;    x%%    x followed by a number for x box location
+;    y%%   y followed by a number for y box location
+;    h%%    h followed by a number for height of box
+;    w%%    w followed by a number for width of box
+;    t%%    t followed by a number for tab stop (can be multiple)
+;    b1    OK button, pauses for response
+;    b2    YES / NO buttons, pauses for response
+;          Options of existing Gui can not be changed except for position and size
+;     b3    OK + Up + Down buttons
+;
+;  3)  {Label}  Identifier for dealing with multiply Gui, also the Label at the top of Gui
+;        Used to create the Gui name, all non-valid characters are striped
+;        If Label exist and String is null and Options is null then Gui is destroyed
+;          Otherwise Gui will be updated with new string
+;          And Options x, y, h, w can be used to reposition and resize Gui Window
+;
+;        If String and Label are null then all Gui are destroyed
+;
+; Returns: 
+;    1    OK or YES button pushed
+;    0    NO button pushed
+;    -1    Gui closed or escaped without pushing button
+;    -2    Gui either had no pause or pause finished causing Gui to close
+;    -3    Up pushed
+;    -4    Down pushed
+;
+; Global:
+;   Creates a series of global gui labels prefixed with ScrollBox_Gui_Label_
+;
+; Note:
+;  When scroll box attempts to auto adjust control to fit text it will fail on very large strings.
+;   If scroll box is given a height and width then larger strings can be displayed.
+;  Closing the box or hitting escape will destroy the gui.
+;
+; Example:
+;  ScrollBox(Text, "w b2 p5000 f{s16 cRed bold, Arial} x50 y50 h400 w400")
+;
+ScrollBox_with_up_down(String := "", Options := "", Label := "")
+{
+  Static Gui_List := "", Gui_Index := "" , lastFocus := "" , ScrollBox_Button3_Hwnd := 0 , ScrollBox_Button4_Hwnd := 0
+  Control := False
+  
+  DetectHiddenWindows, % (Setting_A_DetectHiddenWindows := A_DetectHiddenWindows) ? "On" :
+  SetWinDelay, % (Setting_A_WinDelay := A_WinDelay) ? 0 : 0
+  if !Gui_List
+    Gui_List := {}
+  if Label
+  {
+    Gui_Label := "ScrollBox_Gui_Label_" RegExReplace(Label, "i)[^0-9a-z#_@\$]", "")
+    Gui_Hwnd := Gui_List[Gui_Label]
+    Win_Hwnd := DllCall("GetParent", UInt, Gui_Hwnd)
+    if RegExMatch(RegExReplace(Options, "\{.*}"), "i)d")
+      Gui, %Gui_Label%:Destroy
+    else if WinExist("ahk_id " Win_Hwnd)
+    {
+      if String
+        GuiControl,,%Gui_Hwnd%, %String%
+      WinGetPos, WinX, WinY, WinW, WinH
+      if RegExMatch(Options, "i)x(\d+)", Match)
+        WinX := Match1
+      if RegExMatch(Options, "i)y(\d+)", Match)
+        WinY := Match1
+      if RegExMatch(Options, "i)w(\d+)", Match)
+        WinW := Match1
+      if RegExMatch(Options, "i)h(\d+)", Match)
+        WinH := Match1
+      Winmove, ahk_id %Win_Hwnd%,, WinX, WinY, WinW, WinH
+      if RegExMatch(Options, "i)h(?!\d)", Match)
+        Gui, %Gui_Label%:Hide
+      if RegExMatch(Options, "i)s", Match)
+        Gui, %Gui_Label%:Show
+      DetectHiddenWindows, %Setting_A_DetectHiddenWindows%
+      SetWinDelay, %Setting_A_WinDelay%
+      return
+    }
+  }
+  else
+  {
+    Gui_Index ++
+    Gui_Label := "ScrollBox_Gui_Label_" Gui_Index
+  }
+  if (!String and !Options)
+  {
+    if Label
+    {
+      Gui_List.Delete(Gui_Label)
+      Gui, %Gui_Label%:Destroy
+    }
+    else
+    {
+      for key, element in Gui_List
+        Gui, %key%:Destroy
+      Gui_List := {}
+    }
+    DetectHiddenWindows, %Setting_A_DetectHiddenWindows%
+    SetWinDelay, %Setting_A_WinDelay%
+    return
+  }
+  Gui %Gui_Label%:Default
+  Gui +LabelAllGui
+  Adjust1 := 10
+  ButtonPushed := -2
+  if RegExMatch(Options, "i)f(\d+)", Match)
+  {
+    Gui, Font, s%Match1%
+    Adjust1 := Match1
+  }
+  else if RegExMatch(Options, "i)f\{(.*)}", Match)
+  {
+    Options := RegExReplace(Options, "i)f\{.*}")
+    StringSplit, Match, Match1, `,
+    Gui, Font, %Match1%, % Trim(Match2)
+    RegExMatch(Match1, "i)s(\d+)", Adjust)
+  }
+  else
+  Gui, Font
+  Gui, Margin, 20, 20
+  Gui, +MinSize200x200 +Resize
+  Gui, Color, FFFFFF
+  Opt := "hwndGui_Hwnd ReadOnly -E0x200" . " "
+  if !(Options ~= "i)w(?!\d)")
+    Opt .= "+0x300000 -wrap "
+  if RegExMatch(Options, "i)h(\d+)", Match)
+    Opt .= "h" Match1 " ", Control := true 
+  if RegExMatch(Options, "i)w(\d+)", Match)
+    Opt .= "w" Match1 " ", Control := true
+  if (Options ~= "i)c")
+    Opt .= "center "
+  if (Options ~= "i)l")
+    Opt .= "left "
+  if (Options ~= "i)r")
+    Opt .= "right "
+    
+  Pos := 0
+  
+  Loop
+  {
+    Pos ++
+    if (Pos := RegExMatch(Options, "i)t(\d+)", Match, Pos))
+      Opt .= "t" Match1 " "
+  } until !Pos
+  Opt_Show := "AutoSize "
+  if RegExMatch(Options, "i)x(\d+)", Match)
+    Opt_Show .= "x" Match1 " "
+  if RegExMatch(Options, "i)y(\d+)", Match)
+    Opt_Show .= "y" Match1 " "
+  if Control
+  {
+    Gui, Add, Edit, y30 %Opt%
+    GuiControl, , %Gui_Hwnd%, %String%
+  }
+  else
+    Gui, Add, Edit, y30 %Opt%, %String%
+  if RegExMatch(Options, "i)b(1|2|3)", Match)
+  {
+    Button := Match1
+    if (Button = 1)
+      Gui, Add, Button, gAllGuiButtonOK hwndScrollBox_Button1_Hwnd Default, OK
+      
+    if (Button = 2)
+    {
+      Gui, Add, Button, gAllGuiButtonYES hwndScrollBox_Button1_Hwnd Default, YES
+      Gui, Add, Button, gAllGuiButtonNO hwndScrollBox_Button2_Hwnd, % " NO "
+    }
+    if (Button = 3)
+    {
+      Gui, Add, Button, gAllGuiButtonOK hwndScrollBox_Button1_Hwnd Default, OK
+      Gui, Add, Button, gAllGuiButtonUp hwndScrollBox_Button4_Hwnd, % chr(0x25b2)
+      Gui, Add, Button, gAllGuiButtonDown hwndScrollBox_Button3_Hwnd, % chr(0x25bc)
+    }
+  }
+  Gui, Show, % Opt_Show, % Label ? Label : "ScrollBox"
+  Gui_List[Gui_Label] := Gui_Hwnd
+  Win_Hwnd := DllCall("GetParent", UInt, Gui_Hwnd)
+  WinGetPos,X,Y,W,H, ahk_id %Win_Hwnd%
+  WinMove, ahk_id %Win_Hwnd%,,X,Y,W-1,H-1 ; Move
+  WinMove, ahk_id %Win_Hwnd%,,X,Y,W,H ; And Move Back to Force Recalculation of Margins
+
+  switch button
+  {
+    case 1:
+      ControlSend,,{Tab}{Tab}+{Tab}, ahk_id %Gui_Hwnd% ; Move to Button
+    case 2:
+      ControlSend,,{Control down}{Home}{Control up}, ahk_id %Gui_Hwnd% ; Unselect Text and Move to Top of Control
+    case 3:
+      if (lastFocus == "Button4")
+        ControlSend,,{Tab}{Tab}{Tab}+{Tab}, ahk_id %Gui_Hwnd%
+      if (lastFocus == "Button3")
+        ControlSend,,{Tab}{Tab}{Tab}{Tab}+{Tab}, ahk_id %Gui_Hwnd%
+    
+    default:
+      ControlSend,,{Control down}{Home}{Control up}, ahk_id %Gui_Hwnd% ; Unselect Text and Move to Top of Control
+  }
+  
+  DllCall("HideCaret", "Int", Gui_Hwnd)
+  if ((Options ~= "i)p(?!\d)") or (!(Options ~= "i)p") and Button))
+    while (ButtonPushed = -2)
+      Sleep 50
+  else if RegExMatch(Options, "i)p(\d+)", Match)
+  {
+    TimeEnd := A_TickCount + Match1
+    while (A_TickCount < TimeEnd and ButtonPushed = -2)
+      Sleep 50
+    Gui_List.Delete(Gui_Label)
+    Gui, Destroy
+  }
+  DetectHiddenWindows, %Setting_A_DetectHiddenWindows%
+  SetWinDelay, %Setting_A_WinDelay%
+  Gui, 1:Default
+  return ButtonPushed
+
+  AllGuiSize:
+    Resize_Gui_Hwnd := Gui_List[A_Gui]
+    if Button
+    {
+      if (Button = 1)
+      {
+        EditWidth := A_GuiWidth - 20
+        EditHeight := A_GuiHeight - 20 - (Adjust1 * 3)
+        ButtonX := EditWidth / 2 - Adjust1
+        ButtonY := (Adjust1/6) ; EditHeight + 20 +
+        GuiControl, Move, %Resize_Gui_Hwnd%, W%EditWidth% H%EditHeight%
+        GuiControl, Move, %ScrollBox_Button1_Hwnd%, X%ButtonX% Y%ButtonY%
+      }
+      if (Button = 2)
+      {
+        EditWidth := A_GuiWidth - 20
+        EditHeight := A_GuiHeight - 20 - (Adjust1 * 3)
+        Button1X := EditWidth / 4 - (Adjust1 * 2)
+        Button2X := 3 * EditWidth / 4  - (Adjust1 * 1.5)
+        ButtonY := (Adjust1/6)   ; EditHeight + 20 +  
+        GuiControl, Move, %Resize_Gui_Hwnd%, W%EditWidth% H%EditHeight%
+        GuiControl, Move, %ScrollBox_Button1_Hwnd%, X%Button1X% Y%ButtonY%
+        GuiControl, Move, %ScrollBox_Button2_Hwnd%, X%Button2X% Y%ButtonY%
+      }
+      if (Button = 3)
+      {
+        EditWidth := A_GuiWidth - 20
+        EditHeight := A_GuiHeight - 20 - (Adjust1 * 3)
+        Button1X := 4 * EditWidth / 10 - (Adjust1 * 2)
+        Button2X := 5 * EditWidth / 10 - (Adjust1 * 2)
+        Button3X := 6 * EditWidth / 9  - (Adjust1 * 2)
+        ButtonY := (Adjust1/6)   ; EditHeight + 20 +  
+        GuiControl, Move, %Resize_Gui_Hwnd%, W%EditWidth% H%EditHeight%
+        GuiControl, Move, %ScrollBox_Button1_Hwnd%, X%Button1X% Y%ButtonY%
+        GuiControl, Move, %ScrollBox_Button3_Hwnd%, X%Button2X% Y%ButtonY%
+        GuiControl, Move, %ScrollBox_Button4_Hwnd%, X%Button3X% Y%ButtonY%
+      }
+    }
+    else
+    {
+      EditWidth := A_GuiWidth - 20
+      EditHeight := A_GuiHeight - 20
+      GuiControl, Move, %Resize_Gui_Hwnd%, W%EditWidth% H%EditHeight%
+    }
+  return
+
+  AllGuiButtonOK:
+    ButtonPushed := 1
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+  return
+
+  AllGuiButtonYES:
+    ButtonPushed := 1
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+  return
+
+  AllGuiButtonNO:
+    ButtonPushed := 0
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+  return
+  
+  AllGuiButtonUp:
+    ButtonPushed := -3
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+    lastFocus := "Button4"
+  return
+
+  AllGuiButtonDown:
+    ButtonPushed := -4
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+    lastFocus := "Button3"
+  return
+  
+  AllGuiEscape:
+  AllGuiClose:
+    ButtonPushed := -1
+    Gui, %A_Gui%:Destroy
+    Gui_List.Delete(A_Gui)
+  return
+
+}
+
+;--------------------------------- showHint ---------------------------------
+showHint(s){
+  global Messagetext
+  global fontsize
+
+  Gui, Font, s%fontsize% Bold
+  GuiControl, +c000000, Messagetext
+  guiControl,guiMain:,Messagetext,%s%
+  Gui, Font, s%fontsize% Normal
+  
+  return
+}
+
+;-------------------------------- showHintRed --------------------------------
+showHintRed(s){
+  global Messagetext
+  global fontsize
+
+  Gui, Font, s%fontsize% Bold
+  GuiControl, +cFF0000, Messagetext
+  guiControl,guiMain:,Messagetext,%s%
+  GuiControl, +c000000, Messagetext
+  Gui, Font, s%fontsize% Normal
+
+  return
+}
+
+;------------------------------- showHintGreen -------------------------------
+showHintGreen(s){
+  global Messagetext
+  global fontsize
+
+  Gui, Font, s%fontsize% Bold
+  GuiControl, +c0FFF0F, Messagetext
+  guiControl,guiMain:,Messagetext,%s%
+  GuiControl, +c000000, Messagetext
+  Gui, Font, s%fontsize% Normal
+  
+  return
+}
+
+;--------------------------- GetProcessMemoryUsage ---------------------------
+GetProcessMemoryUsage(){
+
+  OwnPID := DllCall("GetCurrentProcessId")
+  static PMC_EX := "", size := NumPut(VarSetCapacity(PMC_EX, 8 + A_PtrSize * 9, 0), PMC_EX, "uint")
+
+  if (hProcess := DllCall("OpenProcess", "uint", 0x1000, "int", 0, "uint", OwnPID)) {
+    if !(DllCall("GetProcessMemoryInfo", "ptr", hProcess, "ptr", &PMC_EX, "uint", size))
+      if !(DllCall("psapi\GetProcessMemoryInfo", "ptr", hProcess, "ptr", &PMC_EX, "uint", size))
+        return (ErrorLevel := 2) & 0, DllCall("CloseHandle", "ptr", hProcess)
+    DllCall("CloseHandle", "ptr", hProcess)
+    return Round(NumGet(PMC_EX, 8 + A_PtrSize * 8, "uptr") / 1024**2, 2)
+  }
+  return (ErrorLevel := 1) & 0
+}
+
+;--------------------------------- ansiToUTF ---------------------------------
+ansiToUTF(s){
+	vSize := StrPut(s, "CP0")
+	VarSetCapacity(vUtf8, vSize)
+	vSize := StrPut(s, &vUtf8, vSize, "CP0")
+
+	return StrGet(&vUtf8, "UTF-8") 
+}
+
+;-------------------------------- Encode_UTF --------------------------------
+Encode_UTF(hex){
+	Bytes :=  hex>=0x10000 ? 4 : hex>=0x0800 ? 3 : hex>=0x0080 ? 2 : hex>=0x0001 ? 1 : 0
+	Prefix := [0, 0xC0, 0xE0, 0xF0]
+	loop % Bytes {
+		if (A_Index < Bytes)
+			UTFCode := Format("{:X}", (hex&0x3F) + 0x80) . UTFCode		; 3F=00111111, 80=10000000
+		else
+			UTFCode := Format("{:X}", hex + Prefix[Bytes]) . UTFCode	; C0=11000000, E0=11100000, F0=11110000
+		hex := hex>>6
+	}
+	return "0x" UTFCode
+}
+
+;-------------------------------- Decode_UTF --------------------------------
+Decode_UTF(hex){
+	Bytes :=  hex>=0x10000 ? 4 : hex>=0x0800 ? 3 : hex>=0x0080 ? 2 : hex>=0x0001 ? 1 : 0
+	bin := ConvertBase(16, 2, hex)
+	loop, % Bytes {
+		B := SubStr(bin, -7)
+		if Bytes > 1
+			B := LTrim(B, 1) , B := StrReplace(B, 0,,, 1) 
+		bin := SubStr(bin, 1, StrLen(bin)-8)
+		Uni := B . Uni
+	}
+	return "0x" ConvertBase(2, 16, Uni)
+}
+
+;-------------------------------- ConvertBase --------------------------------
+; https://www.autohotkey.com/boards/viewtopic.php?f=6&t=3607#p18985
+
+ConvertBase(InputBase, OutputBase, number){
+    static u := A_IsUnicode ? "_wcstoui64" : "_strtoui64"
+    static v := A_IsUnicode ? "_i64tow"    : "_i64toa"
+    VarSetCapacity(s, 65, 0)
+    value := DllCall("msvcrt.dll\" u, "Str", number, "UInt", 0, "UInt", InputBase, "CDECL Int64")
+    DllCall("msvcrt.dll\" v, "Int64", value, "Str", s, "UInt", OutputBase, "CDECL")
+    return s
+}
+
+
+;------------------------------------ eq ------------------------------------
+eq(a, b) {
+	if (InStr(a, b) && InStr(b, a))
+		return 1
+	return 0
+}
+
+;--------------------------------- errorExit ---------------------------------
+errorExit(theMsgArr, clp := "") {
+ 
+  PostMessage("Slave script", 1) ; exits/deletes slave script
+  makePerma()
+  
+  msgComplete := ""
+  for index, element in theMsgArr
+  {
+    msgComplete .= element . "`n"
+  }
+  msgbox,48,ERROR,%msgComplete%
+  
+  exit()
+  return
+}
+;----------------------------------- Exit -----------------------------------
+exit(){
+  global hMain
+  global gui_position
+  global screenDPI
+  
+  PostMessage("Slave script", 1) ; exits/deletes slave script
+  makePerma()
+  
+  if (hMain > 0){
+    ; WinGetPos, gui_x, gui_y,gui_w,gui_h, ahk_id %hMain%
+    
+    WinGetPosEx(hMain,gui_x,gui_y,gui_w,gui_h,Offset_X,Offset_Y)
+    ; WinGetPosEx(HMainHwnd,X,Y,Width,Height,Offset_X,Offset_Y,Offset_Right,Offset_Bottom)
+    
+    gui_x := gui_x - Offset_X
+    gui_w:= gui_w - 4
+    gui_h := gui_h - 127
+    
+    dpiScale := screenDPI/A_ScreenDPI
+    mainWidth := floor(gui_w * dpiScale)
+    mainHeight := floor(gui_h * dpiScale)
+    IniWrite, x%gui_x% y%gui_y% w%mainWidth% h%mainHeight%, gui.ini, window position, gui_position
+    IniWrite, %mainWidth%, gui.ini, window size, guiMainWidth
+    IniWrite, %mainHeight%, gui.ini, window size, guiMainHeight
+    ; clipboard := gui_x . " " . gui_y  " " . mainWidth . " " . mainHeight . " " . Offset_X . " " . Offset_Y
+
+  }
+  
+  ExitApp
+}
+
+;----------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+

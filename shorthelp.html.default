@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang xml:lang>
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Shorthelp</title>
+  <style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+
+ul.task-list[class]{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+font-size: inherit;
+width: 0.8em;
+margin: 0 0.8em 0.2em -1.6em;
+vertical-align: middle;
+}
+.display.math{display: block; text-align: center; margin: 0.5rem auto;}
+</style>
+  <style type="text/css">html {color: #1a1a1a;background-color: #fdfdfd;}body {margin: 0 auto;padding-left: 20px;padding-right: 20px;padding-top: 20px;padding-bottom: 20px;hyphens: auto;overflow-wrap: break-word;text-rendering: optimizeLegibility;font-kerning: normal;h1 {font-size: 1.2em;}}@media (max-width: 600px) {body {font-size: 0.9em;padding: 12px;}h1 {font-size: 1.8em;}}@media print {html {background-color: white;}body {background-color: transparent;color: black;font-size: 12pt;}p, h2, h3 {orphans: 3;widows: 3;}h2, h3, h4 {page-break-after: avoid;}}p {margin: 1em 0;}a {color: #1a1a1a;}a:visited {color: #1a1a1a;}img {max-width: 100%;}h1, h2, h3, h4, h5, h6 {margin-top: 0.4em;}h5, h6 {font-size: 1em;font-style: italic;}h6 {font-weight: normal;}ol, ul {padding-left: 1.7em;margin-top: 1em;}li > ol, li > ul {margin-top: 0;}blockquote {margin: 1em 0 1em 1.7em;padding-left: 1em;border-left: 2px solid #e6e6e6;color: #606060;}code {font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;font-size: 85%;margin: 0;hyphens: manual;}pre {margin: 1em 0;overflow: auto;}pre code {padding: 0;overflow: visible;overflow-wrap: normal;}.sourceCode {background-color: transparent;overflow: visible;}hr {background-color: #1a1a1a;border: none;height: 1px;margin: 1em 0;}table {margin: 1em 0;border-collapse: collapse;width: 100%;overflow-x: auto;display: block;font-variant-numeric: lining-nums tabular-nums;}table caption {margin-bottom: 0.75em;}tbody {margin-top: 0.5em;border-top: 1px solid #1a1a1a;border-bottom: 1px solid #1a1a1a;}th {border-top: 1px solid #1a1a1a;padding: 0.25em 0.5em 0.25em 0.5em;}td {padding: 0.125em 0.5em 0.25em 0.5em;}header {margin-bottom: 4em;text-align: center;}#TOC li {list-style: none;}#TOC ul {padding-left: 1.3em;}#TOC > ul {padding-left: 0;}#TOC a:not(:hover) {text-decoration: none;}code{white-space: pre-wrap;}span.smallcaps{font-variant: small-caps;}div.columns{display: flex; gap: min(4vw, 1.5em);}div.column{flex: auto; overflow-x: auto;}div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}ul.task-list{list-style: none;}ul.task-list li input[type="checkbox"] {width: 0.8em;margin: 0 0.8em 0.2em -1.6em;vertical-align: middle;}.display.math{display: block; text-align: center; margin: 0.5rem auto;}table{background-color:#fafafa}table tr td,.haroopad table tr th{border:1px solid #e6e6e6}table tr:nth-child(2n){background-color:#f2f2f2}</style>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">Shorthelp</h1>
+</header>
+<h1 id="codetester">Codetester</h1>
+<h4 id="hotkeys">Hotkeys:</h4>
+<p>Defined in the [Config-file].</p>
+<table>
+<thead>
+<tr class="header">
+<th>Hotkey</th>
+<th>Operation</th>
+<th>Remarks</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>[CTRL] + [u]</td>
+<td>test selected-code-only</td>
+<td>Testing selected-code-only does not support UTF-8 characterset</td>
+</tr>
+<tr class="even">
+<td>[ESC]</td>
+<td>stop the script under test</td>
+<td>unnecessary if the script under test has an &quot;exitApp&quot;-command.</td>
+</tr>
+</tbody>
+</table>
+<h4 id="build-in-functions">Build-in functions</h4>
+<p>Description | Operation | Usage<br />
+------------ | -------------<br />
+showvari(&quot;Variable-name&quot;, variable) | Displayed in Debug-window | To
+generate the code mark a variable, then press the button &quot;showvari&quot;
+*1)</p>
+<p>*1)<br />
+If a &quot;showvari&quot; function is used, the codetester-gui stays in
+front!<br />
+&quot;showvari&quot; logs to the file &quot;debug.log&quot; too.<br />
+You may run the script (AHK 1 or 2) &quot;_tmp.ahk&quot; by doubleclicking on the
+file.<br />
+If &quot;showvari()&quot; is used, leave the Codetester window open to receive
+debugging messages!</p>
+<h4 id="disable-code-mods">Disable code mods</h4>
+<p>If checked the following code modifications are disabled during a
+test run:</p>
+<ul>
+<li>inserting &quot;#Requires AutoHotkey v2 (or v1)&quot;</li>
+<li>replacing &quot;exitApp&quot; by sendInput,{ESCAPE}</li>
+<li>The directives directive1..6 stored in the [Config-file] are not
+inserted anymore.</li>
+<li>Existing directives are not changed.</li>
+<li>FileEncoding is not set to &quot;UTF-16&quot; (keeping default
+fileencoding)</li>
+</ul>
+<h4 id="reserved-names">Reserved names</h4>
+<p>The following names cannot be used in code-under-test or are
+predefined:</p>
+<p><strong>showvari</strong> -&gt; used as predefined function<br />
+Gui 99 -&gt; used internally<br />
+Do not use names (variables, functions etc. ) starting with &quot;codetester_
+...&quot;</p>
+<h4 id="make-exe">Make *.exe</h4>
+<p>A standard Autohotkey (64 bit) installation is required (C:\Program
+Files\AutoHotkey ...).<br />
+The code is used to create an executable-file named &quot;_codeToExe.exe&quot; (64
+bit) or &quot;_codeToExe32.exe&quot; (32 bit).<br />
+Functions build into Codetester are not usable,<br />
+&quot;showvari()&quot; is automatically commented out.<br />
+(Not in external libraries)<br />
+The directives directive1..6 stored in the [Config-file] are still
+used!<br />
+&quot;sendInput,{ESCAPE}&quot; is replaced by &quot;exitApp&quot;.<br />
+The sourcecode can be inspected in the file &quot;_codeToExe.ahk&quot;!<br />
+Feel free to rename the executable-file to any name you want ... :-)</p>
+<h4 id="exch-buttons">EXCH buttons</h4>
+<p>By pressing one of the EXCH-buttons, the current content is exchanged
+with a second content-storage,<br />
+(Using the file &quot;_saved__codetester_exchNUMBER.ahk.txt&quot;, NUMBER = 1,2 or
+3),<br />
+independantly from the other Read1...3/Save1...3 buttons.<br />
+(Code text must contain at least one newline character!)<br />
+Only one EXCH can be active at a time.<br />
+On closing the app, the EXCH status is reset.</p>
+<h4 id="hotkeys-1">Hotkeys</h4>
+<p><a href="https://github.com/jvr-ks/codetester/blob/main/hotkeys.md">Overview
+of all default Hotkeys used by my Autohotkey &quot;tools&quot;</a></p>
+<h4 id="unicode-table">Unicode-table</h4>
+<p>&quot;Alt + Up&quot; key: show next 512 characters,<br />
+&quot;Alt + Down&quot; key: show previous 512 characters,<br />
+&quot;Alt + Enter&quot; key: close the Unicode-table.</p>
+<h4 id="hints">Hints</h4>
+<p>Maximum size of code is 60 MB!</p>
+<h4 id="license-mit">License: MIT</h4>
+<p>Permission is hereby granted, free of charge,<br />
+to any person obtaining a copy of this software and associated
+documentation files (the &quot;Software&quot;),<br />
+to deal in the Software without restriction,<br />
+including without limitation the rights to use,<br />
+copy, modify, merge, publish, distribute, sub license, and/or sell
+copies of the Software,<br />
+and to permit persons to whom the Software is furnished to do so,
+subject to the following conditions:</p>
+<p>The above copyright notice and this permission notice shall be
+included in all copies<br />
+or substantial portions of the Software.</p>
+<p>THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,<br />
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY,<br />
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.<br />
+IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+CLAIM,<br />
+DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,<br />
+TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+SOFTWARE<br />
+OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</p>
+<p>Copyright (c) 2020 J. v. Roos</p>
+<p>Other parts License<br />
+&quot;SCI.ahk&quot; from:<br />
+<a href="https://github.com/RaptorX/scintilla-wrapper">https://github.com/RaptorX/scintilla-wrapper</a><br />
+Copyright by Isaias Baez<br />
+Has no License information!</p>
+</body>
+</html>
