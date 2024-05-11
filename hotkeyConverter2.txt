@@ -1,0 +1,4 @@
+﻿hotkeyConverter2.ahk is now part of the simpletools project!
+
+codetester uses the executable now!
+

@@ -1,0 +1,11 @@
+codetester.exe,yes
+Licenses.txt
+unicodesections.txt
+allfilesBetter.exe
+Scintilla.dll
+readme.html
+shorthelp.html
+aaa_demo_1.ahk
+hotkeyConverter2.exe
+
+
