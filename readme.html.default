@@ -551,175 +551,179 @@ debugview)</td>
 </thead>
 <tbody>
 <tr class="odd">
+<td>0.195</td>
+<td>Controlarea buttons rearranged</td>
+</tr>
+<tr class="even">
 <td>0.194</td>
 <td>Contextsensitiv Help removed</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.190</td>
 <td>Automatic insertion of &quot;#Requires AutoHotkey v2&quot; into a new
 file</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.189</td>
 <td>Button &quot;ext.&quot; to start <a href="https://github.com/jvr-ks/UnicodeTable">Unicodetable.exe</a></td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.188</td>
 <td>Contextsensitiv Help (using &quot;ContextSensitiveHelp2.exe&quot; an AHK2
 script)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.183</td>
 <td>Copy to/from SciTE</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.182</td>
 <td>Button &quot;Hotkey Converter&quot;, uses external &quot;hotkeyConverter2.exe&quot; from
 my <a href="https://github.com/jvr-ks/simpletools?">simpletools</a>
 repository.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.181</td>
 <td>Buttons &quot;showvari&quot; and &quot;msgbox&quot; fixed</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.171</td>
 <td>Run code from any app (supporting the clipboard and copy via
 CTRL+c), default Hotkeys are F7 = run as AHK1 and F8 = run as AHK 2</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.170</td>
 <td>Configuration-file -&gt; [config] -&gt; &quot;clipboardKeep=0</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.169</td>
 <td>Code under Test file encoding changed to UTF-8-RAW as default</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.168</td>
 <td>AHK2 detection bug fixed</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.167</td>
 <td>Configuration-file: empty entries behavior changed</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.166</td>
 <td>If AOT is disabled, the Controlarea is shown in the tasklist</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.165</td>
 <td>UnicodeTable: Navigation + Exit buttons, font fixed to &quot;Consolas&quot;
 (to keep the tabs-formatting)</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.164</td>
 <td>forced use of non-proportional font (Consolas) in the unicode
 table</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.163</td>
 <td>directives2 default values fixed, Requires AutoHotkey mechanism
 changed</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.158</td>
 <td>maxDirectives fixed to 6, directives read from config precede
 others</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.157</td>
 <td>Configuration-file -&gt; &quot;exeIgnore=&quot; removed</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.147</td>
 <td>Complete change of the Gui! (Please delete the section [Gui] in the
 Configuration-file!)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.146</td>
 <td>Fixes a bug introduced in the last version</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.142</td>
 <td>Window postion etc. is now saved in the Configuration-file too.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.140</td>
 <td>Configuration-file changed! Delete the old one, a corrected new one
 will be created automatically!</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.125</td>
 <td>Code unde test filename changed from &quot;TempTestCode.ahk&quot; to
 &quot;_tmp.ahk&quot;</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.124</td>
 <td>Detached button panel &quot;Controlbox&quot;</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.123</td>
 <td>Tagged version 123 (source codetester123.ahk)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.120</td>
 <td>Debugger removed, use build in showvari() function or AHK
 &quot;OutputDebug&quot; command</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.115</td>
 <td>Experimental AHK 2 support, function showvari(&quot;a&quot;,a) not usable with
 AHK v2 (TODO)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.108</td>
 <td>&quot;#&quot; as WIN-key usable (interfered with &quot;#&quot;-directives before), using
 &quot;Scintilla.dll&quot; again</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.105</td>
 <td>Width of Debug-Window fixed to 30% (Configuration-file -&gt;
 [config] -&gt; &quot;widthDebugtext=&quot; removed)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.100</td>
 <td>Code under Test uses UTF-16 LE-BOM as default (files:
 &quot;TempTestCode.ahk&quot; and &quot;_codeToExe.ahk&quot;) Configuration-file -&gt;
 cutFileEncoding.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.094</td>
 <td>showvari() sends to Debugger too, format is: Codetester (DATETIME):
 showvari-info</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.093</td>
 <td>Generated *.exe-files -&gt; showvari() is commented out, exch1..3
 buttons behave like radio-buttons</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.091</td>
 <td>Files to store Save1...3 renamed to &quot;__codetester_save1...3.ahk.txt&quot;
 (in the &quot;_saved&quot;-subdirectory)</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.090</td>
 <td>During test-run &quot;exitApp is automaticaly replaced by
 &quot;sendInput,{ESCAPE}&quot;, so &quot;exitApp&quot; can be used as usual. Buttons changed
 accordingly.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.088</td>
 <td>The file &quot;TempTestCode.ahk&quot; holding the code-under-test is not
 deleted after a run, can be used for debugging.</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>0.072</td>
 <td>Clear Button: the code is saved to &quot;_codetester.tmp.txt&quot; as a &quot;last
 chance&quot;.</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>0.052</td>
 <td>Scintilla Textcontrol usable, Scintilla Wrapper for AHK generates a
 lot of warnings, #Warn disabled.</td>
@@ -758,7 +762,7 @@ Has no License information!</p>
 <a name="virusscan">
 
 <h5 id="virusscan-at-virustotal">Virusscan at Virustotal</h5>
-<p><a href="https://www.virustotal.com/gui/url/e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173/detection/u-e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173-1715415829">Virusscan
+<p><a href="https://www.virustotal.com/gui/url/e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173/detection/u-e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173-1715417159">Virusscan
 at Virustotal, codetester.exe 64bit-exe, Check here</a></p>
 </body>
 </html>

@@ -530,34 +530,29 @@ controlAreaCreate(){
   gui, controlArea:font, s%fontsizeControlArea%, %fontControlArea%
    
 ;------------------------------------
-  gui, controlArea:add, Button, xm ym w%buttonWidth% vButtonRun GrunButtonOperation, Run
-  gui, controlArea:add, Button, x+m yp+0 vButton34 w%buttonWidth% GnewFile, New file
+  gui, controlArea:add, Button, xm ym w%buttonWidthSmall% vButtonRun GrunButtonOperation, Run
     
-  gui, controlArea:add, Button, xm vButtonExit w%buttonWidth%  GexitButtonOperation, 🗙 Exit 
+  gui, controlArea:add, Button, x+m yp+0 vButtonExit w%buttonWidthSmall%  GexitButtonOperation, 🗙 Exit 
   
   if(controlAreaAOT)
-    gui, controlArea:add, Button, x+m yp+0 w%buttonWidth% vButtonAOT gcontrolAreaToggleAOT,✔ AOT
+    gui, controlArea:add, Button, x+m yp+0 w%buttonWidthSmall% vButtonAOT gcontrolAreaToggleAOT,✔ AOT
   else
-    gui, controlArea:add, Button, x+m yp+0 w%buttonWidth% vButtonAOT gcontrolAreaToggleAOT,☹ AOT
+    gui, controlArea:add, Button, x+m yp+0 w%buttonWidthSmall% vButtonAOT gcontrolAreaToggleAOT,☹ AOT
   
 ;------------------------------------
   gui, controlArea:add, Text, xm w%separatorWidth% 0x7 h2
   
-  gui, controlArea:add, Text, xm, Save (to "_saved\..." subdirectory):
+  gui, controlArea:add, Button, xm vButton34 w%buttonWidth% GnewFile, New file
   
-  gui, controlArea:add, Button, xs vButton30 %buttonHeight% w%buttonWidth% gsaveWithName, New name
+  gui, controlArea:add, Button, x+m yp+0 vButton30 %buttonHeight% w%buttonWidth% gsaveWithName, Save as
   
-  gui, controlArea:add, Button, x+m yp+0 vButton4 %buttonHeight% w%buttonWidth% gsave, "cS" + DateTime
+  gui, controlArea:add, Button, xs vButton22 %buttonHeight% w%buttonWidth% gsaveToLast, Last used (Ctrl+S)
   
-  gui, controlArea:add, Button, xs vButton22 %buttonHeight% w%buttonWidth% gsaveToLast, Last used
+  gui, controlArea:add, Button, x+m yp+0 vButton31 %buttonHeight% w%buttonWidth% gsaveToDir, Save to directory
+    
+  gui, controlArea:add, Button, xm vButton4 %buttonHeight% gsave, Save as "codetesterSource_" + DateTime
   
-  gui, controlArea:add, Button, x+m yp+0 vButton31 %buttonHeight% w%buttonWidthSmall%  gsaveToDir, Directory
-  
- ;------------------------------------
-  gui, controlArea:add, Text, xm w%separatorWidth% 0x7 h2 
- 
-  gui, controlArea:add, Button, xm vButtonShow w%buttonWidth% GshowTmpfileOperation, Show: _tmp.ahk
-  gui, controlArea:add, Button, x+m yp+0 vButtonhotkeyConverter w%buttonWidth% GhotkeyConverter, Hotkey converter
+
   
 ;------------------------------------
   gui, controlArea:add, Text, xm w%separatorWidth% 0x7 h2
@@ -612,6 +607,12 @@ controlAreaCreate(){
   gui, controlArea:add, Button, xm vButton27 w%buttonWidthSmall% Gexch123, EXCH 1-a
   gui, controlArea:add, Button, x+m yp+0 vButton28 w%buttonWidthSmall% Gexch123, EXCH 1-b
   gui, controlArea:add, Button, x+m yp+0 vButton29 w%buttonWidthSmall% Gexch123, EXCH 1-c
+  
+ ;------------------------------------
+  gui, controlArea:add, Text, xm w%separatorWidth% 0x7 h2 
+ 
+  gui, controlArea:add, Button, xm vButtonShow w%buttonWidth% GshowTmpfileOperation, Show: _tmp.ahk
+  gui, controlArea:add, Button, x+m yp+0 vButtonhotkeyConverter w%buttonWidth% GhotkeyConverter, Hotkey converter
   
 ;------------------------------------
   gui, controlArea:add, Text, xm w%separatorWidth% 0x7 h2
@@ -777,6 +778,11 @@ saveContent(savePath){
   if (exch[1] || exch[2] || exch[3]){
     msgbox, ERROR`, a save operation is prohibited`, if EXCH1, EXCH2 or EXCH3 are active!
   } else {
+    if (savePath = "Current file has no name!"){
+      showHintColoredRefresh(mainHwnd, "File has no name, NOT SAVED!")
+      return
+    }
+    
     theCode := ""
     if (contentIsTemporary)
       theCode := actualContent
@@ -921,7 +927,7 @@ saveToLast(){
       
     contentIsTemporary := 0
 
-    if (StrLen(lastSavedName) > 0){
+    if (StrLen(lastSavedName) > 0 && lastSavedName != "Current file has no name!"){
       ; lastSavedName is constructed from date_time
       if (saveDir != ""){
         savePath := pathToAbsolut(saveDir) . lastSavedName
