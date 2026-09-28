@@ -11,9 +11,6 @@
 
 FileEncoding, UTF-8-RAW
 
-clipboardKeepDefault := 0
-clipboardKeep := clipboardKeepDefault
-
 quickHelpVisible := 0
 
 ;-------------------------------- read cmdline param --------------------------------
@@ -981,7 +978,6 @@ readConfig() {
   global serverURL, serverURLDefault 
   global serverURLExtension, serverURLExtensionDefault 
   global texteditorpath, texteditorpathDefault
-  global clipboardKeep, clipboardKeepDefault
 
   global directive1, directive2, directive3, directive4, directive5, directive6
   global directive21, directive22, directive23, directive24, directive25, directive26
@@ -1005,8 +1001,6 @@ readConfig() {
   testSelectedCodeHotkey := iniReadSave("testSelectedCodeHotkey", "config", testSelectedCodeHotkeyDefault)
   testExternalCode1Hotkey := iniReadSave("testExternalCode1Hotkey", "config", testExternalCode1HotkeyDefault)
   testExternalCode2Hotkey := iniReadSave("testExternalCode2Hotkey", "config", testExternalCode2HotkeyDefault)
-
-  clipboardKeep := iniReadSave("clipboardKeep", "config", clipboardKeepDefault)
   
   ; setup:
   ahk1exepath := iniReadSave("ahk1exepath", "setup", ahk1exepathDefault)
@@ -1068,7 +1062,6 @@ saveConfig(){
   global disableCodeModifications, testSelectedCodeHotkeyDefault, testSelectedCodeHotkey
   global ahk1exepath, ahk2exepath,serverURL, serverURLExtension, texteditorpath
   global testExternalCode1HotkeyDefault, testExternalCode1Hotkey, testExternalCode2HotkeyDefault, testExternalCode2Hotkey
-  global clipboardKeep
     
   global maxDirectives
   global directive1, directive2, directive3, directive4, directive5, directive6
@@ -1097,7 +1090,6 @@ saveConfig(){
   IniWrite, "%testSelectedCodeHotkey%", %configFile%, config, testSelectedCodeHotkey
   IniWrite, "%testExternalCode1Hotkey%", %configFile%, config, testExternalCode1Hotkey
   IniWrite, "%testExternalCode2Hotkey%", %configFile%, config, testExternalCode2Hotkey
-  IniWrite, "%clipboardKeep%", %configFile%, config, clipboardKeep 
   
   ; setup:
   IniWrite, "%ahk1exepath%", %configFile%, setup, ahk1exepath
@@ -1934,13 +1926,11 @@ _openCodetester_slave_gui()
     
     Send, ^c
     CheckWin := Clipboard
-    Clipboard := Clipsave
+    
     IfInString, CheckWin, The program will exit.
     {
-
-    TrayTip, ERROR, Error executing the code properly!
-    
-    return
+      TrayTip, ERROR, Error executing the code properly!
+      return
     }
   }
   
@@ -2060,9 +2050,6 @@ guiMainGuiContextMenu(GuiHwnd, CtrlHwnd, EventInfo, IsRightClick, X, Y){
 insShowvari(){
   global sci
 
-  ; cps := clipboard
-  ; clipboard := ""
-  
   sci.COPY()
   theInsert := clipboard
   
@@ -2074,7 +2061,6 @@ insShowvari(){
     msgbox, Mark a variable first!
   }
   
-  ; clipboard := cps
   return
 }
 ;------------------------------ insRequiresAHK2 ------------------------------
@@ -2183,8 +2169,6 @@ insMsgbox(){
     msgbox, Mark a variable first!
   }
   
-  ;clipboard := cps
-  ;cps := ""
   return
 }
 ;----------------------------- runAllfilesBetter -----------------------------
@@ -3452,8 +3436,7 @@ getFromSciTE(){
 }
 ;---------------------------------- newFile ----------------------------------
 newFile(){
-  global clipboardSave, lastSavedName
-  global clipboardKeep
+  global lastSavedName
 
   PostMessage("Slave script", 0x0001) ; exits/deletes slave script
   exch123Reset()
@@ -3469,16 +3452,12 @@ newFile(){
     
   FileAppend, #Requires AutoHotkey v2`n`n, _codetester.txt
   
-  if (clipboardKeep)
-    clipboard := clipboardSave
-
   reload
 
   exitApp
 }
 ;---------------------------------- restart ----------------------------------
 restart(){
-  global clipboardSave, clipboardKeep
   
     PostMessage("Slave script", 0x0001) ; exits/deletes slave script
     exch123Reset()
@@ -3486,8 +3465,6 @@ restart(){
     saveConfig()
     saveGuiData()
     syncAppDataWrite()
-    if (clipboardKeep)
-      clipboard := clipboardSave
 
     reload
     
@@ -3495,7 +3472,6 @@ restart(){
 }
 ;----------------------------------- Exit -----------------------------------
 exit(){
-  global clipboardSave, clipboardKeep
   
   PostMessage("Slave script", 0x0001) ; exits/deletes slave script
   exch123Reset()
@@ -3503,8 +3479,6 @@ exit(){
   saveConfig()
   saveGuiData()
   syncAppDataWrite()
-  if (clipboardKeep)
-    clipboard := clipboardSave
   
   ExitApp
 }

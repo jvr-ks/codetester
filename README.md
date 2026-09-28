@@ -27,8 +27,12 @@ Block move with tab: Indentation is 2 spaces (fixed).
   
 Code based on: [https://autohotkey.com/board/topic/72566-code-tester-test-your-code/](https://autohotkey.com/board/topic/72566-code-tester-test-your-code/frudimentary)  
    
-**Codetester uses the clipboard, clipboard-content is not saved!**  
-
+**Some Codetester commands overwrite the clipboard content!**  
+  showClipboardAs_UTF8  
+  showClipboardAs_URI  
+  copyToNPPP  
+  copyToSciTE  
+  
 \*1) Codetester does not support breakpoints,  
      use [SciTE4AutoHotkey](https://www.autohotkey.com/scite4ahk), if breakpoints are required.  
      "showvar()": run Codetester.exe, mark a variable, press \[Ctrl] + \[c] and then the Insert: \[Showvari]-button.   
@@ -377,6 +381,7 @@ Line-numbers limited to 99 | issue | 0.109 (increased to 999)
   
 Version (&gt;=)| Change  
 ------------ | -------------  
+0.195 | clipboardKeep removed
 0.195 | Controlarea buttons rearranged
 0.194 | Contextsensitiv Help removed
 0.190 | Automatic insertion of "#Requires AutoHotkey v2" into a new file  
@@ -435,7 +440,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
 TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE  
 OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. 
   
-Copyright (c) 2020 J. v. Roos
+Copyright (c) 2020 J. v. Roos  
   
 Other parts License  
 "SCI.ahk" from:  
@@ -443,9 +448,30 @@ https://github.com/RaptorX/scintilla-wrapper
 Copyright by Isaias Baez  
 Has no License information!  
   
+#### License for Lexilla, Scintilla, and SciTE  
+  
+Copyright 1998-2021 by Neil Hodgson <neilh@scintilla.org>  
+  
+All Rights Reserved  
+  
+Permission to use, copy, modify, and distribute this software and its  
+documentation for any purpose and without fee is hereby granted,  
+provided that the above copyright notice appear in all copies and that  
+both that copyright notice and this permission notice appear in  
+supporting documentation.  
+  
+NEIL HODGSON DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS  
+SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY  
+AND FITNESS, IN NO EVENT SHALL NEIL HODGSON BE LIABLE FOR ANY  
+SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES  
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,  
+WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER  
+TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE  
+OR PERFORMANCE OF THIS SOFTWARE.  
+  
 <a name="virusscan">
 
 
 ##### Virusscan at Virustotal 
-[Virusscan at Virustotal, codetester.exe 64bit-exe, Check here](https://www.virustotal.com/gui/url/e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173/detection/u-e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173-1718100198
+[Virusscan at Virustotal, codetester.exe 64bit-exe, Check here](https://www.virustotal.com/gui/url/e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173/detection/u-e127696ef1914ed369901ebcdd5b1f722d9ad40fab65b454297ef21a2a8b2173-1790599406
 )  
